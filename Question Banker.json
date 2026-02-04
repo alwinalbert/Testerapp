@@ -1,0 +1,528 @@
+{
+  "name": "Question Banker",
+  "nodes": [
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"question\": {\n        \"type\": \"string\",\n        \"description\": \"The question text based on the chunk\"\n      },\n      \"capability\": {\n        \"type\": \"string\",\n        \"description\": \"Specific capability being tested\"\n      },\n      \"difficulty\": {\n        \"type\": \"string\",\n        \"enum\": [\"easy\", \"medium\", \"hard\"],\n        \"description\": \"Difficulty level of the question\"\n      },\n      \"subjects\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"string\"\n        },\n        \"minItems\": 1,\n        \"description\": \"Subjects extracted from metadata or inferred\"\n      },\n      \"topics\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"string\"\n        },\n        \"minItems\": 1,\n        \"description\": \"Topics extracted from metadata or inferred\"\n      },\n      \"syllabuses\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"string\"\n        },\n        \"minItems\": 1,\n        \"description\": \"Syllabuses extracted from metadata or inferred\"\n      },\n      \"evaluation_contract\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"answer_type\": {\n            \"type\": \"string\",\n            \"enum\": [\"free_text\", \"structured\", \"code\", \"numeric\", \"boolean\"],\n            \"description\": \"Type of answer expected\"\n          },\n          \"must_include\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key concepts that must be included in the answer\"\n          },\n          \"must_not_include\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Common misconceptions to avoid\"\n          },\n          \"required_steps\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"minItems\": 1,\n            \"description\": \"Steps required to answer the question\"\n          },\n          \"format_constraints\": {\n            \"type\": \"string\",\n            \"description\": \"Format constraints for the answer (empty string if none)\"\n          },\n          \"example_valid_answer\": {\n            \"type\": \"string\",\n            \"description\": \"A complete correct answer based on chunk content\"\n          },\n          \"example_invalid_answer\": {\n            \"type\": \"string\",\n            \"description\": \"A plausible but incorrect answer\"\n          }\n        },\n        \"required\": [\n          \"answer_type\",\n          \"must_include\",\n          \"must_not_include\",\n          \"required_steps\",\n          \"format_constraints\",\n          \"example_valid_answer\",\n          \"example_invalid_answer\"\n        ],\n        \"additionalProperties\": false\n      },\n      \"notes\": {\n        \"type\": \"string\",\n        \"description\": \"Reference to chunk or additional notes\"\n      },\n      \"source_chunk_id\": {\n        \"type\": \"string\",\n        \"description\": \"ID of the source chunk\"\n      }\n    },\n    \"required\": [\n      \"question\",\n      \"capability\",\n      \"difficulty\",\n      \"subjects\",\n      \"topics\",\n      \"syllabuses\",\n      \"evaluation_contract\",\n      \"notes\",\n      \"source_chunk_id\"\n    ],\n    \"additionalProperties\": false\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        -192
+      ],
+      "id": "04f8b4bd-f317-4c1d-b91b-6dbc07cd5a47",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role\nYou are a Question Generator Agent whose job is to create high-quality test questions based on educational content provided to you.\n\nInput\nYou will receive a chunk of textbook content with:\n- content: The actual text/passage from the textbook. the content may be a part of literature, or may be a guide on how to write, like in grammar textbooks, or lab manuals. identify this as well\n- metadata: Information about the source (subject, topic, chapter, etc.)\n\nYour Task\nGenerate 1-3 high-quality questions based EXCLUSIVELY on the content provided in this specific chunk.\n\nRequirements:\n1. Questions must be answerable using ONLY the information in the provided chunk\n2. Do not generate questions requiring information from other parts of the textbook\n3. Extract subject, topic, and syllabus information from the metadata\n4. Ensure questions test comprehension and application of the specific content\n5. Match difficulty to the complexity of the content\n\nContent to Process:\n{{ JSON.stringify($json.chunks[$json.batch_number]) }}\n\nOutput Format (STRICT)\nReturn ONLY a JSON array of question objects. No other text.\n\nStructure:\n[\n  {\n    \"question\": \"Question text based on the chunk\",\n    \"capability\": \"Specific capability being tested\",\n    \"difficulty\": \"easy\",\n    \"subjects\": [\"Extract from metadata or infer\"],\n    \"topics\": [\"Extract from metadata or infer\"],\n    \"syllabuses\": [\"Extract from metadata or infer\"],\n    \"evaluation_contract\": {\n      \"answer_type\": \"free_text\",\n      \"must_include\": [\"Key concept 1\", \"Key concept 2\"],\n      \"must_not_include\": [\"Common misconception\"],\n      \"required_steps\": [\"Step 1 to answer\", \"Step 2 to answer\"],\n      \"format_constraints\": \"\",\n      \"example_valid_answer\": \"A complete correct answer based on chunk content\",\n      \"example_invalid_answer\": \"A plausible but incorrect answer\"\n    },\n    \"notes\": \"Reference to chunk\",\n    \"source_chunk_id\": \"{{ $json.chunks[$json.batch_number].id }}\"\n  }\n]\n\nCRITICAL OUTPUT FORMAT:\nYou MUST return a valid JSON array of question objects.\nDo NOT include any explanation, preamble, or markdown.\nDo NOT wrap the output in ```json``` code blocks.\nReturn ONLY the raw JSON array starting with [ and ending with ]\n\n\nCRITICAL FIELD REQUIREMENTS:\n1. required_steps - MUST have at least 1 item. If no specific steps needed, use:\n   - [\"Read and comprehend the text\"]\n   - [\"Recall the key information\"]\n   - [\"Apply the concept to answer\"]\n   \n2. must_include - Array of key concepts (can be empty [] if no specific requirements)\n\n3. must_not_include - Array of misconceptions (can be empty [] if none)\n\n4. format_constraints - Must be a STRING (use \"\" if no constraints)\n\n5. answer_type - Choose from: \"free_text\", \"structured\", \"code\", \"numeric\", \"boolean\"\n\n6. difficulty - Choose from: \"easy\", \"medium\", \"hard\"\n\n7. All text fields (question, capability, notes, example answers) must contain actual text, not null or empty\n\n8. subjects, topics, syllabuses - Must be arrays with at least one item each",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1056,
+        -400
+      ],
+      "id": "392ecb07-e561-4c41-921a-53bfa2514190",
+      "name": "QuestionMaker1",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -352
+      ],
+      "id": "b588eab8-4f91-4fd9-9163-5aae9081a693",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hdoosskhOXBAvBIR",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "TextVector",
+          "mode": "list",
+          "cachedResultName": "TextVector"
+        },
+        "embeddingBatchSize": 500,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        -544
+      ],
+      "id": "a8e939b2-d128-4ae5-a772-02e1d6724c4f",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "apVJ1wIwKZHYaDov",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        144,
+        -544
+      ],
+      "id": "85f3aa96-4384-4908-b0ad-2d8fdb0b0383",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "BLcpItdOOfA2Q9jF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {
+          "splitPages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        -352
+      ],
+      "id": "32422b3b-a36a-4e37-b835-ee0ce6623cd0",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1pOMCzi8DNF3axgvddDpHXVb0Ct7fuF-d",
+          "mode": "list",
+          "cachedResultName": "Resources",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pOMCzi8DNF3axgvddDpHXVb0Ct7fuF-d"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -544
+      ],
+      "id": "55732b94-06f1-43ff-a7a9-442198448f26",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "BLcpItdOOfA2Q9jF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        848,
+        -416
+      ],
+      "id": "70d4759e-8f04-4124-8d5b-00c1b96ec1fe",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "tableId": "questions",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "question_text",
+              "fieldValue": "={{ $json.question }}"
+            },
+            {
+              "fieldId": "capability",
+              "fieldValue": "={{ $json.capability }}"
+            },
+            {
+              "fieldId": "difficulty",
+              "fieldValue": "={{ $json.difficulty }}"
+            },
+            {
+              "fieldId": "Subject",
+              "fieldValue": "={{ $json.subjects }}"
+            },
+            {
+              "fieldId": "Topic",
+              "fieldValue": "={{ $json.topics }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        -400
+      ],
+      "id": "fdf0b75d-f7df-4bdf-9186-fd263d365cb8",
+      "name": "Create a row2",
+      "retryOnFail": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "apVJ1wIwKZHYaDov",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "evaluation_contracts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "answer_type",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.evaluation_contract.answer_type }}"
+            },
+            {
+              "fieldId": "question_id",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "must_include",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.evaluation_contract.must_include }}"
+            },
+            {
+              "fieldId": "must_not_include",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.evaluation_contract.must_not_include }}"
+            },
+            {
+              "fieldId": "required_steps",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.evaluation_contract.required_steps }}"
+            },
+            {
+              "fieldId": "format_constraints",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.evaluation_contract.format_constraints }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        -192
+      ],
+      "id": "69548c90-b628-4bf4-9b30-ed423d0f63c3",
+      "name": "Create a row3",
+      "retryOnFail": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "apVJ1wIwKZHYaDov",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.first().json.output;\n\n// Handle array of questions from agent\nif (Array.isArray(output)) {\n  // Return each question as a separate item for downstream processing\n  return output.map(question => ({ json: question }));\n}\n// If no valid output, skip\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -400
+      ],
+      "id": "0412a2f8-c004-4a73-80f9-59203a46e917",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        -400
+      ],
+      "id": "f3e794fb-88d7-4783-a0cf-7c0a69b72c00",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { continue: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -192
+      ],
+      "id": "1037b4ac-7181-4a18-87fd-0acc6d1e4cdb",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The vector store outputs the documents it just processed\nconst insertedDocuments = $input.all();\n\nconsole.log(`Vector store inserted ${insertedDocuments.length} chunks`);\n\n// Extract chunks\nconst chunks = insertedDocuments.map((doc, index) => {\n  // The structure depends on what the vector store returns\n  // Usually it's the original document data\n  return {\n    id: doc.json.id || `chunk_${index}`,\n    content: doc.json.content || doc.json.pageContent || doc.json.text,\n    metadata: doc.json.metadata || {}\n  };\n});\n\n// Create batches\nconst BATCH_SIZE = 5;\nconst batches = [];\n\nfor (let i = 0; i < chunks.length; i += BATCH_SIZE) {\n  batches.push({\n    json: {\n      batch_number: Math.floor(i / BATCH_SIZE) + 1,\n      chunks: chunks.slice(i, i + BATCH_SIZE)\n    }\n  });\n}\n\nconsole.log(`Created ${batches.length} batches`);\nreturn batches;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        -544
+      ],
+      "id": "df9518cb-ec59-4db9-810f-6fa91654226b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -208
+      ],
+      "id": "ffbe940b-2fbb-424e-813a-03739b4b456b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YuhYjRwB1V3rGxy3",
+          "name": "Google Gemini(PaLM) Api account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "QuestionMaker1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuestionMaker1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "QuestionMaker1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Create a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "QuestionMaker1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "e0e25897-3ef1-4474-b6ac-b3bec1173aed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13a506d9fcd3ffcbd832cea4a6e2844209e8d3eef88fd4ee05eb3ada5a001e44"
+  },
+  "id": "H8byz5gUfF6LMRAe",
+  "tags": []
+}

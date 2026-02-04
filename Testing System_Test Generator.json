@@ -1,0 +1,313 @@
+{
+  "name": "Testing System/Test Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -752,
+        288
+      ],
+      "id": "5f804225-7f80-43be-a3d3-a4a0181103cf",
+      "name": "When chat message received",
+      "webhookId": "5caedb0d-f255-4b46-9d69-fd720fc15c44"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=YOU MUST FOLLOW THIS OUTPUT FORMAT EXACTLY:\nReturn ONLY a valid JSON object. No markdown, no code blocks, no explanation text.\nDo NOT wrap in ```json``` blocks. Return ONLY the JSON starting with { and ending with }\n\n=== ROLE ===\nYou are a test paper generation assistant. Your task is to create a well-structured test paper by querying questions from the Supabase database based on the provided specifications.\n\n=== INPUT SPECIFICATION ===\nYou will receive a JSON profile with:\n- \"No of Questions\": Total number of questions needed\n- \"Topics\": Array of topic areas to cover\n- \"Difficulty\": Tuple representing (easy, medium, hard) question counts\n- \"Subject\": The subject area\n\nInput JSON:\n{{ $json.chatInput }}\n\n=== YOUR TASK ===\n1. Parse the input JSON to understand requirements\n2. Use the Supabase tool to query questions that match:\n   - The specified subject\n   - The topics listed\n   - The difficulty distribution (e.g., 10 easy, 5 medium, 5 hard)\n3. Ensure you retrieve exactly the number of questions specified\n4. If multiple topics are provided, distribute questions proportionally across topics\n5. Validate that retrieved questions meet all criteria\n\n=== QUERY STRATEGY ===\n- Make separate queries for each difficulty level to ensure proper distribution\n- Query format example: \n  * For easy: SELECT * FROM questions WHERE \"Subject\" = 'English' AND \"Topic\" = ANY(ARRAY['Literary Analysis']) AND difficulty = 'easy' ORDER BY RANDOM() LIMIT 10\n  * For medium: SELECT * FROM questions WHERE \"Subject\" = 'English' AND \"Topic\" = ANY(ARRAY['Literary Analysis']) AND difficulty = 'medium' ORDER BY RANDOM() LIMIT 5\n  * For hard: SELECT * FROM questions WHERE \"Subject\" = 'English' AND \"Topic\" = ANY(ARRAY['Literary Analysis']) AND difficulty = 'hard' ORDER BY RANDOM() LIMIT 5\n- If a topic doesn't have enough questions at a specific difficulty, note this and adjust by pulling from other topics or inform the user\n- Randomize question selection when multiple valid options exist\n\n=== OUTPUT FORMAT (CRITICAL) ===\nYou MUST return a JSON object with this EXACT structure:\n\n{\n  \"test_paper\": {\n    \"metadata\": {\n      \"title\": \"Test title based on subject and topics\",\n      \"subject\": \"Subject name\",\n      \"topics\": [\"topic1\", \"topic2\"],\n      \"total_questions\": 20,\n      \"difficulty_distribution\": {\n        \"easy\": 10,\n        \"medium\": 5,\n        \"hard\": 5\n      },\n      \"duration_minutes\": 60,\n      \"total_marks\": 100\n    },\n    \"questions\": [\n      {\n        \"question_number\": 1,\n        \"question_id\": \"uuid-from-database\",\n        \"question_text\": \"The actual question\",\n        \"difficulty\": \"easy\",\n        \"topic\": \"Literary Analysis\",\n        \"marks\": 5,\n        \"capability\": \"Text comprehension\"\n      }\n    ],\n    \"instructions\": \"Read all questions carefully. Answer all questions. Time allowed: 60 minutes. Total marks: 100.\"\n  }\n}\n\n=== CRITICAL REQUIREMENTS ===\n1. Use the ACTUAL question IDs from the Supabase database (from the 'id' column)\n2. Use the ACTUAL question text from the 'question_text' column\n3. Ensure difficulty distribution matches the input specification EXACTLY\n4. Assign marks based on difficulty:\n   - easy = 3-5 marks\n   - medium = 5-8 marks\n   - hard = 8-10 marks\n5. Number questions sequentially starting from 1\n6. Calculate duration_minutes: approximately 3 minutes per question\n7. Calculate total_marks: sum of all question marks\n8. If you cannot find enough questions matching the criteria, clearly state what's missing in the instructions field\n9. Maintain diversity in question types if the database includes this information\n\n=== IMPORTANT ===\n- Return ONLY the JSON object\n- Do NOT add any explanatory text before or after the JSON\n- Do NOT wrap in markdown code blocks\n- Verify the total count matches \"No of Questions\" before finalizing",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -512,
+        336
+      ],
+      "id": "cfc6e634-b5a1-4303-b14b-6ff890dac205",
+      "name": "Testmaker"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Query the questions database with filters for:\n- subject (text field)\n- Topic (text array field)  \n- difficulty (text field: 'easy', 'medium', or 'hard')\n- capability (text field)\n\nUse the filters parameter to specify exact matches.\nExamples:\n- Filter by difficulty: {\"difficulty\": \"easy\"}\n- Filter by subject: {\"Subject\": \"English\"}\n- Multiple filters: {\"Subject\": \"English\", \"difficulty\": \"easy\"}\n\nThe tool will return matching rows from the questions table.",
+        "operation": "getAll",
+        "tableId": "questions",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        544
+      ],
+      "id": "1103eb56-6584-40c3-847f-b95b71950532",
+      "name": "Get many rows in Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "apVJ1wIwKZHYaDov",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "{\n\"No of Questions\": 4,\n\"Topics\": [\"Writing Skills\",\"Exam Preparation\",\"Writing Conventions\",\"Text Types\",\"Literary Analysis\",\"Theme Identification\",\"Critical Thinking\"],\n\"Difficulty\":(3,1,0),\n\"Subject\":\"English Language Arts\"\n}"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        16
+      ],
+      "id": "e743e664-d1f1-44a3-b3a9-0e37acbb015e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        544
+      ],
+      "id": "f98580ce-5527-4257-8a82-7dc3dd8eb477",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"test_paper\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"metadata\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"title\": {\n              \"type\": \"string\",\n              \"description\": \"Title of the test paper\"\n            },\n            \"subject\": {\n              \"type\": \"string\",\n              \"description\": \"Subject of the test\"\n            },\n            \"topics\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"minItems\": 1,\n              \"description\": \"Topics covered in the test\"\n            },\n            \"total_questions\": {\n              \"type\": \"integer\",\n              \"minimum\": 1,\n              \"description\": \"Total number of questions\"\n            },\n            \"difficulty_distribution\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"easy\": {\n                  \"type\": \"integer\",\n                  \"minimum\": 0\n                },\n                \"medium\": {\n                  \"type\": \"integer\",\n                  \"minimum\": 0\n                },\n                \"hard\": {\n                  \"type\": \"integer\",\n                  \"minimum\": 0\n                }\n              },\n              \"required\": [\"easy\", \"medium\", \"hard\"]\n            },\n            \"duration_minutes\": {\n              \"type\": \"integer\",\n              \"minimum\": 1,\n              \"description\": \"Recommended duration in minutes\"\n            },\n            \"total_marks\": {\n              \"type\": \"integer\",\n              \"minimum\": 1,\n              \"description\": \"Total marks for the test\"\n            }\n          },\n          \"required\": [\"title\", \"subject\", \"topics\", \"total_questions\", \"difficulty_distribution\", \"duration_minutes\", \"total_marks\"]\n        },\n        \"questions\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"question_number\": {\n                \"type\": \"integer\",\n                \"minimum\": 1,\n                \"description\": \"Sequential question number\"\n              },\n              \"question_id\": {\n                \"type\": \"string\",\n                \"description\": \"Database ID of the question\"\n              },\n              \"question_text\": {\n                \"type\": \"string\",\n                \"description\": \"The actual question text\"\n              },\n              \"difficulty\": {\n                \"type\": \"string\",\n                \"enum\": [\"easy\", \"medium\", \"hard\"],\n                \"description\": \"Difficulty level\"\n              },\n              \"topic\": {\n                \"type\": \"string\",\n                \"description\": \"Specific topic this question covers\"\n              },\n              \"marks\": {\n                \"type\": \"integer\",\n                \"minimum\": 1,\n                \"description\": \"Marks allocated to this question\"\n              },\n              \"capability\": {\n                \"type\": \"string\",\n                \"description\": \"Capability being tested\"\n              }\n            },\n            \"required\": [\"question_number\", \"question_id\", \"question_text\", \"difficulty\", \"topic\", \"marks\", \"capability\"]\n          },\n          \"minItems\": 1,\n          \"description\": \"Array of questions in the test paper\"\n        },\n        \"instructions\": {\n          \"type\": \"string\",\n          \"description\": \"General instructions for the test\"\n        }\n      },\n      \"required\": [\"metadata\", \"questions\", \"instructions\"]\n    }\n  },\n  \"required\": [\"test_paper\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        624
+      ],
+      "id": "435b1455-6424-41c4-bf44-aefa524acdf4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        544
+      ],
+      "id": "e20aeac0-1a82-4976-b1bc-9c9170c53bb8",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "pjiyR4LcFPwyaxXe",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const testPaper = $input.first().json.output.test_paper;\n\nlet content = `${testPaper.metadata.title}\\n`;\ncontent += `${'='.repeat(testPaper.metadata.title.length)}\\n\\n`;\ncontent += `Subject: ${testPaper.metadata.subject}\\n`;\ncontent += `Topics: ${testPaper.metadata.topics.join(', ')}\\n`;\ncontent += `Duration: ${testPaper.metadata.duration_minutes} minutes | Total Marks: ${testPaper.metadata.total_marks}\\n\\n`;\n\ncontent += `INSTRUCTIONS:\\n`;\ncontent += `${testPaper.instructions}\\n\\n`;\n\ncontent += `QUESTIONS:\\n`;\ncontent += `${'-'.repeat(50)}\\n\\n`;\n\ntestPaper.questions.forEach(q => {\n  content += `${q.question_number}. ${q.question_text}\\n`;\n  content += `   [${q.marks} marks] [Difficulty: ${q.difficulty}] [Topic: ${q.topic}]\\n\\n`;\n});\n\ncontent += `\\n${'='.repeat(50)}\\n`;\ncontent += `SUMMARY:\\n`;\ncontent += `Total Questions: ${testPaper.metadata.total_questions}\\n`;\ncontent += `Easy: ${testPaper.metadata.difficulty_distribution.easy} questions\\n`;\ncontent += `Medium: ${testPaper.metadata.difficulty_distribution.medium} questions\\n`;\ncontent += `Hard: ${testPaper.metadata.difficulty_distribution.hard} questions\\n`;\n\nreturn {\n  json: {\n    title: testPaper.metadata.title,\n    content: content\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        304
+      ],
+      "id": "47bfa77a-4eb8-4001-881e-b3019fb4c85c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Code in JavaScript').item.json.content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        208,
+        304
+      ],
+      "id": "5c42666b-285a-4704-a230-8b3bad933a38",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "KngMdYW4DON07ShW",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through every item coming into the node\nreturn items.map(item => {\n  \n  // 1. Capture the input variables from the previous node\n  // Replace these names with the actual fields from your upstream node\n  const documentid = $input.first().json.documentId;\n  const title=$('Code in JavaScript').first().json.title\n  const content=$('Code in JavaScript').first().json.content\n\n  // 2. Compile them into a single new object\n  const compiledObject = {\n    profile: {\n      documentid: documentid,\n      title: title,\n      content: title\n    }\n  };\n\n  // 3. Return the new structure\n  return {\n    json: compiledObject\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        304
+      ],
+      "id": "274e8533-2849-4f25-a7ba-ae7a14db533f",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "folderId": "1o8xkPYwjNNWlZ2_WiYwDcSZuXXC0yPch",
+        "title": "={{ $json.title }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        16,
+        304
+      ],
+      "id": "01c28e87-ff87-42e3-a6d7-b23a7582a907",
+      "name": "Create a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "KngMdYW4DON07ShW",
+          "name": "Google Docs account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Testmaker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows in Supabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Testmaker",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Testmaker",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Testmaker",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Testmaker": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Testmaker",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        []
+      ]
+    },
+    "Create a document": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "60dc9764-298e-47c4-8db9-30dabc09eb95",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13a506d9fcd3ffcbd832cea4a6e2844209e8d3eef88fd4ee05eb3ada5a001e44"
+  },
+  "id": "F4rWfulw5oNt7V8K",
+  "tags": []
+}

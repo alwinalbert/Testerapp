@@ -1,0 +1,258 @@
+{
+  "name": "Evaluator",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1wcAiLE9_Nsl49GUYyyEDzm9geQQWGi2N",
+          "mode": "list",
+          "cachedResultName": "Answers",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1wcAiLE9_Nsl49GUYyyEDzm9geQQWGi2N"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "231444ee-98e8-4b9d-8733-be6ba0942663",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "BLcpItdOOfA2Q9jF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('Google Drive Trigger').item.json.name }}",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1o8xkPYwjNNWlZ2_WiYwDcSZuXXC0yPch",
+            "mode": "list",
+            "cachedResultName": "Test Papers",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1o8xkPYwjNNWlZ2_WiYwDcSZuXXC0yPch"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        48
+      ],
+      "id": "7c743983-7b27-47b4-8aac-830e50618b96",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "BLcpItdOOfA2Q9jF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an answer evaluator agent. After evaluating answers, you MUST respond with valid JSON following this exact schema:\n\n{\n  \"evaluations\": [\n    {\n      \"question_id\": \"string - the question identifier\",\n      \"marks\": number - score awarded (minimum 0),\n      \"report\": \"string - short evaluation report (max 500 chars)\"\n    }\n  ],\n  \"metadata\": {\n    \"total_questions\": number,\n    \"evaluation_timestamp\": \"ISO 8601 datetime string\"\n  }\n}\n\nImportant: Return ONLY valid JSON, no markdown formatting, no explanatory text before or after.\n\nyou will recieve:\n\n1. A questions document containing question IDs and questions\n2. An answers document containing responses to those questions\n\nFor each question-answer pair:\n1. Extract the question ID from the questions document\n2. Use the Supabase tool to retrieve the evaluation criteria for that question ID.\n3. Evaluate the answer against the retrieved criteria\n4. Assign a score/grade based on the evaluation contract\n5. Provide brief feedback explaining the score\n\nOutput Format:\n- Return results as a JSON array with fields: question_id, score, max_score, feedback, criteria_used\n\ninputs: Questions: {{ $json.content }}\ninputs: Answers: {{ $('Get Questions').item.json.content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        112,
+        0
+      ],
+      "id": "c7a401e2-8ae2-4902-8c27-ab3cb6b825de",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "evaluation_contracts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "question_id",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        272,
+        192
+      ],
+      "id": "2f8a0bfd-3936-4367-8770-9bd9c84290af",
+      "name": "Get a row in Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "apVJ1wIwKZHYaDov",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        208
+      ],
+      "id": "b0e06a83-4a77-4d06-9e85-7bc17c4c4b40",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "pjiyR4LcFPwyaxXe",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        64
+      ],
+      "id": "f1b755c0-309f-4660-90af-5b2b43d02aad",
+      "name": "Answers",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "KngMdYW4DON07ShW",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "0ec54595-58ed-494b-a9c1-00112157df67",
+      "name": "Get Questions",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "KngMdYW4DON07ShW",
+          "name": "Google Docs account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row in Supabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Questions": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answers": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4e5f9c59-0f1e-422d-b464-3b9cb6909539",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13a506d9fcd3ffcbd832cea4a6e2844209e8d3eef88fd4ee05eb3ada5a001e44"
+  },
+  "id": "dDALBB9NMZvEgBYo",
+  "tags": []
+}
