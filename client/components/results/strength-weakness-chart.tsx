@@ -175,10 +175,13 @@ export function ScoreDistributionChart({
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number, name: string) => [
-                    `${value} (${Math.round((value / total) * 100)}%)`,
-                    name,
-                  ]}
+                  formatter={(value, name) => {
+                    const numValue = typeof value === 'number' ? value : 0;
+                    return [
+                      `${numValue} (${Math.round((numValue / total) * 100)}%)`,
+                      name,
+                    ];
+                  }}
                 />
                 <Legend />
               </PieChart>

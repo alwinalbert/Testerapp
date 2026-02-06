@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { TestPaper, TestSession, UserAnswer, TestResults, Evaluation } from "@/types";
 import { mockTestResults } from "@/data/mock";
+import { submitForEvaluation, transformN8nEvaluation } from "@/lib/api";
 
 interface UseTestOptions {
   testPaper: TestPaper;
@@ -159,50 +160,50 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
   );
 
   const submitTest = useCallback(async (): Promise<TestResults> => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Generate mock results based on answers
+    // Calculate time taken
     const timeTaken = Math.floor(
       (Date.now() - session.startTime.getTime()) / 1000
     );
 
-    // Create mock evaluations
-    const evaluations: Evaluation[] = testPaper.questions.map((q) => {
-      const answer = session.answers[q.question_id];
-      const hasAnswer = answer && answer.answer.trim().length > 0;
+    // Prepare questions and answers for API
+    const questions = testPaper.questions.map((q) => ({
+      question_id: q.question_id,
+      question_text: q.question_text,
+    }));
 
-      // Random scoring for demo
-      const scorePercentage = hasAnswer ? Math.random() * 0.4 + 0.5 : 0; // 50-90% if answered
-      const marks = Math.round(q.marks * scorePercentage);
+    const answers = Object.values(session.answers).map((a) => ({
+      question_id: a.question_id,
+      answer: a.answer,
+    }));
 
-      return {
-        question_id: q.question_id,
-        marks,
-        max_marks: q.marks,
-        report: hasAnswer
-          ? marks >= q.marks * 0.7
-            ? "Good answer with strong understanding."
-            : "Partial understanding. Consider reviewing this topic."
-          : "No answer provided.",
-        is_correct: marks >= q.marks * 0.7,
-      };
-    });
+    let results: TestResults;
 
-    const totalScore = evaluations.reduce((sum, e) => sum + e.marks, 0);
-    const maxScore = evaluations.reduce((sum, e) => sum + e.max_marks, 0);
+    try {
+      // Try to evaluate using n8n API
+      const n8nEvaluation = await submitForEvaluation(
+        session.testId,
+        questions,
+        answers
+      );
 
-    const results: TestResults = {
-      ...mockTestResults,
-      testId: session.testId,
-      testPaper,
-      evaluations,
-      totalScore,
-      maxScore,
-      percentage: Math.round((totalScore / maxScore) * 100),
-      completedAt: new Date(),
-      timeTaken,
-    };
+      if (n8nEvaluation) {
+        // Transform n8n evaluation to app format
+        results = transformN8nEvaluation(
+          n8nEvaluation,
+          testPaper,
+          Object.values(session.answers),
+          timeTaken
+        );
+        console.log("Test evaluated via n8n API");
+      } else {
+        // Fallback to mock evaluation
+        results = generateMockResults();
+      }
+    } catch (error) {
+      console.error("Error evaluating test:", error);
+      // Fallback to mock evaluation on error
+      results = generateMockResults();
+    }
 
     setSession((prev) => ({
       ...prev,
@@ -212,6 +213,45 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
     onSubmit?.(results);
 
     return results;
+
+    // Helper function for mock results
+    function generateMockResults(): TestResults {
+      const evaluations: Evaluation[] = testPaper.questions.map((q) => {
+        const answer = session.answers[q.question_id];
+        const hasAnswer = answer && answer.answer.trim().length > 0;
+
+        // Random scoring for demo
+        const scorePercentage = hasAnswer ? Math.random() * 0.4 + 0.5 : 0;
+        const marks = Math.round(q.marks * scorePercentage);
+
+        return {
+          question_id: q.question_id,
+          marks,
+          max_marks: q.marks,
+          report: hasAnswer
+            ? marks >= q.marks * 0.7
+              ? "Good answer with strong understanding."
+              : "Partial understanding. Consider reviewing this topic."
+            : "No answer provided.",
+          is_correct: marks >= q.marks * 0.7,
+        };
+      });
+
+      const totalScore = evaluations.reduce((sum, e) => sum + e.marks, 0);
+      const maxScore = evaluations.reduce((sum, e) => sum + e.max_marks, 0);
+
+      return {
+        ...mockTestResults,
+        testId: session.testId,
+        testPaper,
+        evaluations,
+        totalScore,
+        maxScore,
+        percentage: Math.round((totalScore / maxScore) * 100),
+        completedAt: new Date(),
+        timeTaken,
+      };
+    }
   }, [session, testPaper, onSubmit]);
 
   return {

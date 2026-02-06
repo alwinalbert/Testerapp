@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/shared/page-header";
@@ -14,8 +14,10 @@ import { Separator } from "@/components/ui/separator";
 import { mockSubjects, generateMockTestPaper } from "@/data/mock";
 import { TestConfig, DifficultyDistribution, QuestionType } from "@/types";
 import { pageVariants } from "@/lib/animations";
+import { LoadingSpinner } from "@/components/shared/loading-spinner";
+import { generateTestPaper, transformN8nTestPaper } from "@/lib/api";
 
-export default function TestBuilderPage() {
+function TestBuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preSelectedSubject = searchParams.get("subject");
@@ -111,22 +113,54 @@ export default function TestBuilderPage() {
 
     setIsLoading(true);
 
-    // Simulate API call to generate test
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Get the subject name from the selected subject
+      const subjectName = selectedSubject?.name || config.subject;
 
-    // Generate mock test paper
-    const testPaper = generateMockTestPaper({
-      subject: config.subject,
-      topics: config.topics,
-      numberOfQuestions: config.numberOfQuestions,
-      difficulty: config.difficulty,
-    });
+      // Try to generate test paper using n8n API
+      const n8nResponse = await generateTestPaper(
+        subjectName,
+        config.topics,
+        config.numberOfQuestions,
+        config.difficulty
+      );
 
-    // Store test paper in sessionStorage for the test page
-    sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
+      let testPaper;
 
-    // Navigate to test page
-    router.push(`/test/${testPaper.id}`);
+      if (n8nResponse) {
+        // Transform n8n response to app format
+        testPaper = transformN8nTestPaper(n8nResponse);
+        console.log("Test generated via n8n API");
+      } else {
+        // Fallback to mock data if n8n is unavailable
+        console.log("n8n unavailable, using mock data");
+        testPaper = generateMockTestPaper({
+          subject: config.subject,
+          topics: config.topics,
+          numberOfQuestions: config.numberOfQuestions,
+          difficulty: config.difficulty,
+        });
+      }
+
+      // Store test paper in sessionStorage for the test page
+      sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
+
+      // Navigate to test page
+      router.push(`/test/${testPaper.id}`);
+    } catch (error) {
+      console.error("Error generating test:", error);
+      // Fallback to mock on error
+      const testPaper = generateMockTestPaper({
+        subject: config.subject,
+        topics: config.topics,
+        numberOfQuestions: config.numberOfQuestions,
+        difficulty: config.difficulty,
+      });
+      sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
+      router.push(`/test/${testPaper.id}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -198,5 +232,13 @@ export default function TestBuilderPage() {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+export default function TestBuilderPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <TestBuilderContent />
+    </Suspense>
   );
 }

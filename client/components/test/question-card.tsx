@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flag, HelpCircle } from "lucide-react";
+import { Flag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,20 +52,12 @@ export function QuestionCard({
               <h3 className="text-xl font-semibold">
                 Question {questionNumber}
               </h3>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant="secondary" 
-                  className="rounded-full px-3 py-1 text-xs font-medium"
-                >
-                  {question.difficulty.toUpperCase()}
-                </Badge>
-                <Badge 
-                  variant="secondary"
-                  className="rounded-full px-3 py-1 text-xs font-medium"
-                >
-                  Paper {question.paper || "1A"}
-                </Badge>
-              </div>
+              <Badge
+                variant="secondary"
+                className="rounded-full px-3 py-1 text-xs font-medium"
+              >
+                {question.difficulty.toUpperCase()}
+              </Badge>
             </div>
 
             <Button
