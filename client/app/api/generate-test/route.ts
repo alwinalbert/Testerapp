@@ -5,7 +5,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const N8N_BASE_URL = process.env.N8N_BASE_URL || "http://localhost:5678";
-    const WEBHOOK_ID = process.env.TEST_GENERATOR_WEBHOOK_ID || "5caedb0d-f255-4b46-9d69-fd720fc15c44";
+    const WEBHOOK_ID = process.env.TEST_GENERATOR_WEBHOOK_ID || "147cf9e2-857f-4acf-ad86-0cabb1f313a7";
+
+    console.log("Using webhook ID:", WEBHOOK_ID);
+    console.log("N8N URL:", N8N_BASE_URL);
 
     // Try production webhook first, then test webhook
     const urls = [
