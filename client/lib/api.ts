@@ -62,7 +62,7 @@ export interface N8nEvaluation {
 const getApiConfig = () => {
   // n8n webhook URLs - configure in .env.local
   const N8N_BASE_URL = process.env.NEXT_PUBLIC_N8N_BASE_URL || "http://localhost:5678";
-  const TEST_GENERATOR_WEBHOOK_ID = process.env.NEXT_PUBLIC_TEST_GENERATOR_WEBHOOK_ID || "5caedb0d-f255-4b46-9d69-fd720fc15c44";
+  const TEST_GENERATOR_WEBHOOK_ID = process.env.NEXT_PUBLIC_TEST_GENERATOR_WEBHOOK_ID;
   const EVALUATOR_WEBHOOK_ID = process.env.NEXT_PUBLIC_EVALUATOR_WEBHOOK_ID || "";
 
   return {
@@ -97,9 +97,7 @@ export async function generateTestPaper(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        chatInput: JSON.stringify(requestBody),
-      }),
+      body: JSON.stringify(JSON.stringify(requestBody)),
     });
 
     if (!response.ok) {
