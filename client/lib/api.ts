@@ -142,15 +142,9 @@ export async function submitForEvaluation(
   questions: { question_id: string; question_text: string }[],
   answers: { question_id: string; answer: string }[]
 ): Promise<N8nEvaluation | null> {
-  const config = getApiConfig();
-
-  if (!config.evaluator || config.evaluator.endsWith("/webhook/")) {
-    console.warn("Evaluator webhook not configured. Using mock evaluation.");
-    return generateMockEvaluation(questions, answers);
-  }
-
   try {
-    const response = await fetch(config.evaluator, {
+    // Use local API proxy to avoid CORS
+    const response = await fetch("/api/evaluate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
