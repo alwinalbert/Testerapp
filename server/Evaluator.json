@@ -24,8 +24,8 @@
       "type": "n8n-nodes-base.googleDriveTrigger",
       "typeVersion": 1,
       "position": [
-        -560,
-        0
+        0,
+        -320
       ],
       "id": "231444ee-98e8-4b9d-8733-be6ba0942663",
       "name": "Google Drive Trigger",
@@ -54,8 +54,8 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        -224,
-        48
+        352,
+        -240
       ],
       "id": "7c743983-7b27-47b4-8aac-830e50618b96",
       "name": "Search files and folders",
@@ -69,7 +69,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are an answer evaluator agent. After evaluating answers, you MUST respond with valid JSON following this exact schema:\n\n{\n  \"evaluations\": [\n    {\n      \"question_id\": \"string - the question identifier\",\n      \"marks\": number - score awarded (minimum 0),\n      \"report\": \"string - short evaluation report (max 500 chars)\"\n    }\n  ],\n  \"metadata\": {\n    \"total_questions\": number,\n    \"evaluation_timestamp\": \"ISO 8601 datetime string\"\n  }\n}\n\nImportant: Return ONLY valid JSON, no markdown formatting, no explanatory text before or after.\n\nyou will recieve:\n\n1. A questions document containing question IDs and questions\n2. An answers document containing responses to those questions\n\nFor each question-answer pair:\n1. Extract the question ID from the questions document\n2. Use the Supabase tool to retrieve the evaluation criteria for that question ID.\n3. Evaluate the answer against the retrieved criteria\n4. Assign a score/grade based on the evaluation contract\n5. Provide brief feedback explaining the score\n\nOutput Format:\n- Return results as a JSON array with fields: question_id, score, max_score, feedback, criteria_used\n\ninputs: Questions: {{ $json.content }}\ninputs: Answers: {{ $('Get Questions').item.json.content }}",
+        "text": "=You are an answer evaluator agent. After evaluating answers, you MUST respond with valid JSON following this exact schema:\n\n{\n  \"evaluations\": [\n    {\n      \"question_id\": \"string - the question identifier\",\n      \"marks\": number - score awarded (minimum 0),\n      \"report\": \"string - short evaluation report (max 500 chars)\"\n    }\n  ],\n  \"metadata\": {\n    \"total_questions\": number,\n    \"evaluation_timestamp\": \"ISO 8601 datetime string\"\n  }\n}\n\nImportant: Return ONLY valid JSON, no markdown formatting, no explanatory text before or after.\n\nyou will recieve:\n\n1. A questions document containing question IDs and questions\n2. An answers document containing responses to those questions\n\nFor each question-answer pair:\n1. Extract the question ID from the questions document\n2. Use the Supabase tool to retrieve the evaluation criteria for that question ID.\n3. Evaluate the answer against the retrieved criteria\n4. Assign a score/grade based on the evaluation contract\n5. Provide brief feedback explaining the score\n\nOutput Format:\n- Return results as a JSON array with fields: question_id, score, max_score, feedback, criteria_used\n\ninputs: Questions: {{ $json.content }}\ninputs: Answers: ",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -142,8 +142,8 @@
       "type": "n8n-nodes-base.googleDocs",
       "typeVersion": 2,
       "position": [
-        -80,
-        64
+        528,
+        -192
       ],
       "id": "f1b755c0-309f-4660-90af-5b2b43d02aad",
       "name": "Answers",
@@ -162,8 +162,8 @@
       "type": "n8n-nodes-base.googleDocs",
       "typeVersion": 2,
       "position": [
-        -384,
-        0
+        192,
+        -336
       ],
       "id": "0ec54595-58ed-494b-a9c1-00112157df67",
       "name": "Get Questions",
@@ -173,6 +173,50 @@
           "name": "Google Docs account 2"
         }
       }
+    },
+    {
+      "parameters": {
+        "path": "f737bade-c463-4ce4-ae79-302a024e6153",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        0
+      ],
+      "id": "3a6c0be4-27a4-43a5-afa6-a1f13dbc551d",
+      "name": "Webhook",
+      "webhookId": "f737bade-c463-4ce4-ae79-302a024e6153"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        528,
+        32
+      ],
+      "id": "a54241f4-e06f-4a4a-86e6-c2ed6adc8ecf",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Notes\nFrom the frontend (hooks/use-test.ts:167-176):\n\n{\n  \"testPaperId\": \"test-1770468154260\",\n  \"questions\": [\n    {\n      \"id\": \"uuid-from-database\",\n      \"text\": \"What is the main theme of the passage?\"\n    },\n    {\n      \"id\": \"uuid-from-database-2\",\n      \"text\": \"Explain the significance of the title.\"\n    }\n  ],\n  \"answers\": [\n    {\n      \"question_id\": \"uuid-from-database\",\n      \"answer\": \"The main theme is about resilience and overcoming challenges...\"\n    },\n    {\n      \"question_id\": \"uuid-from-database-2\",\n      \"answer\": \"The title signifies the journey of...\"\n    }\n  ]\n}\nExpected response from n8n Evaluator:\n\n{\n  \"evaluations\": [\n    {\n      \"question_id\": \"uuid-from-database\",\n      \"marks\": 7,\n      \"report\": \"Good answer with strong understanding of the theme.\"\n    },\n    {\n      \"question_id\": \"uuid-from-database-2\",\n      \"marks\": 5,\n      \"report\": \"Partial understanding. Missing key symbolic references.\"\n    }\n  ],\n  \"metadata\": {\n    \"total_questions\": 2,\n    \"evaluation_timestamp\": \"2026-02-07T12:00:00.000Z\"\n  }\n}\n",
+        "height": 928,
+        "width": 512
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        -192
+      ],
+      "id": "d98e4858-0b79-4439-a2d8-e2307a07633f",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -234,9 +278,25 @@
     },
     "Answers": {
       "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
         [
           {
             "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -248,7 +308,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4e5f9c59-0f1e-422d-b464-3b9cb6909539",
+  "versionId": "779b8eff-a663-4530-a0fc-f30d212db31c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "13a506d9fcd3ffcbd832cea4a6e2844209e8d3eef88fd4ee05eb3ada5a001e44"
