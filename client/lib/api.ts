@@ -92,12 +92,15 @@ export async function generateTestPaper(
 
   try {
     // Use local API proxy to avoid CORS
+    // n8n chat trigger expects { chatInput: "message string" }
     const response = await fetch("/api/generate-test", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(JSON.stringify(requestBody)),
+      body: JSON.stringify({
+        chatInput: JSON.stringify(requestBody),
+      }),
     });
 
     if (!response.ok) {
