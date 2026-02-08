@@ -13,8 +13,11 @@ import {
   Menu,
   X,
   User,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +38,7 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   // Mock user for demo
   const currentUser = user || {
@@ -51,9 +55,14 @@ export function Navbar({ user }: NavbarProps) {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <BookOpen className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="hidden font-semibold text-lg sm:inline-block">
-              TestPrep
-            </span>
+            <div className="hidden sm:block">
+              <span className="font-semibold text-lg leading-tight block">
+                TestPrep
+              </span>
+              <span className="text-[10px] text-muted-foreground leading-none">
+                powered by Edukko
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -86,7 +95,7 @@ export function Navbar({ user }: NavbarProps) {
           <div className="flex items-center gap-2">
             {/* Desktop User */}
             <div className="hidden md:flex md:items-center md:gap-3">
-              <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2">
+              <Link href="/profile" className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2 hover:bg-accent transition-colors">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                   <User className="h-4 w-4 text-primary" />
                 </div>
@@ -96,7 +105,16 @@ export function Navbar({ user }: NavbarProps) {
                     {currentUser.email}
                   </p>
                 </div>
-              </div>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
               <Button variant="ghost" size="icon" asChild>
                 <Link href="/settings">
                   <Settings className="h-4 w-4" />
