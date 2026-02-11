@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -13,7 +12,6 @@ import { cardVariants } from "@/lib/animations";
 import { useAuth } from "@/contexts/auth-context";
 
 export function LoginForm() {
-  const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,12 +47,13 @@ export function LoginForm() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const { error } = await login(formData.email, formData.password);
 
-    // Store user info and redirect to dashboard
-    login(formData.email);
-    router.push("/dashboard");
+    if (error) {
+      setErrors({ email: error });
+      setIsLoading(false);
+      return;
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +155,7 @@ export function LoginForm() {
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline font-medium">
+              <Link href="/auth/signup" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
             </p>

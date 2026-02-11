@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -36,7 +35,6 @@ const syllabuses = [
 ];
 
 export function SignupForm() {
-  const router = useRouter();
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -94,12 +92,13 @@ export function SignupForm() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const { error } = await signup(formData.name, formData.email, formData.password);
 
-    // Store user info and redirect to dashboard
-    signup(formData.name, formData.email);
-    router.push("/dashboard");
+    if (error) {
+      setErrors({ email: error });
+      setIsLoading(false);
+      return;
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,7 +265,7 @@ export function SignupForm() {
             <p className="text-sm text-center text-muted-foreground">
               Already have an account?{" "}
               <Link
-                href="/login"
+                href="/auth/login"
                 className="text-primary hover:underline font-medium"
               >
                 Sign in
