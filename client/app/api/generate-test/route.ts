@@ -52,7 +52,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    console.log("n8n raw response:", text);
+
+    if (!text) {
+      return NextResponse.json(
+        { error: "n8n returned an empty response. The workflow may not be returning data correctly." },
+        { status: 502 }
+      );
+    }
+
+    const data = JSON.parse(text);
     return NextResponse.json(data);
   } catch (error) {
     console.error("API route error:", error);

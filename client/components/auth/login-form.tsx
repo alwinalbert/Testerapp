@@ -10,9 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cardVariants } from "@/lib/animations";
+import { useAuth } from "@/contexts/auth-context";
 
 export function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,7 +52,8 @@ export function LoginForm() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Mock successful login - redirect to dashboard
+    // Store user info and redirect to dashboard
+    login(formData.email);
     router.push("/dashboard");
   };
 

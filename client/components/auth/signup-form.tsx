@@ -24,6 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cardVariants } from "@/lib/animations";
+import { useAuth } from "@/contexts/auth-context";
 
 const syllabuses = [
   { id: "cambridge", name: "Cambridge IGCSE" },
@@ -36,6 +37,7 @@ const syllabuses = [
 
 export function SignupForm() {
   const router = useRouter();
+  const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -95,7 +97,8 @@ export function SignupForm() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Mock successful signup - redirect to dashboard
+    // Store user info and redirect to dashboard
+    signup(formData.name, formData.email);
     router.push("/dashboard");
   };
 

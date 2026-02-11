@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -39,11 +40,11 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { user: authUser, logout } = useAuth();
 
-  // Mock user for demo
-  const currentUser = user || {
-    name: "John Doe",
-    email: "john@example.com",
+  const currentUser = user || authUser || {
+    name: "Guest",
+    email: "",
   };
 
   return (
@@ -120,10 +121,8 @@ export function Navbar({ user }: NavbarProps) {
                   <Settings className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/login">
-                  <LogOut className="h-4 w-4" />
-                </Link>
+              <Button variant="ghost" size="icon" onClick={logout}>
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
 
@@ -186,14 +185,16 @@ export function Navbar({ user }: NavbarProps) {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg"
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg w-full"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}

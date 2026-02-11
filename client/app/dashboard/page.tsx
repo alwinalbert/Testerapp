@@ -20,8 +20,10 @@ import {
 } from "@/data/mock";
 import { DashboardFilters } from "@/types";
 import { pageVariants } from "@/lib/animations";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<DashboardFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -62,7 +64,7 @@ export default function DashboardPage() {
       {/* Page Header */}
       <PageHeader
         title="Dashboard"
-        description="Welcome back! Continue your learning journey."
+        description={`Welcome back${user?.name ? `, ${user.name}` : ""}! Continue your learning journey.`}
         actions={
           <Button asChild size="lg" className="gap-2">
             <Link href="/test-builder">

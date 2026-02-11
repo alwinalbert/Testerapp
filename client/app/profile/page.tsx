@@ -25,12 +25,14 @@ import { Separator } from "@/components/ui/separator";
 import { mockDashboardStats, mockRecentTests } from "@/data/mock";
 import { pageVariants, cardVariants } from "@/lib/animations";
 import { formatDate, getScoreColor } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john@example.com",
+    name: user?.name || "Guest",
+    email: user?.email || "",
     syllabus: "IGCSE",
     grade: "Grade 10",
     school: "International Academy",
