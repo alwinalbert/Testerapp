@@ -15,85 +15,120 @@
   --radius-xl: 1rem;
   --radius-full: 9999px;
 
-  /* Light mode colors */
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
+  /* Map theme colors to CSS variables (indirection for dark mode) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  /* Primary - Google Blue */
-  --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(210 40% 98%);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  /* Secondary */
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  /* Muted */
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  /* Accent */
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* Destructive - Red */
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Success - Green */
-  --color-success: hsl(142 76% 36%);
-  --color-success-foreground: hsl(210 40% 98%);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
 
-  /* Warning - Yellow */
-  --color-warning: hsl(45 93% 47%);
-  --color-warning-foreground: hsl(222.2 84% 4.9%);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 
-  /* Borders & Input */
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(217 91% 60%);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Shadows - Google Forms inspired soft shadows */
+  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
   --shadow-md: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.08);
   --shadow-lg: 0 4px 12px 0 rgba(60, 64, 67, 0.15), 0 2px 4px 0 rgba(60, 64, 67, 0.12);
   --shadow-xl: 0 8px 24px 0 rgba(60, 64, 67, 0.2), 0 4px 8px 0 rgba(60, 64, 67, 0.15);
 }
 
-/* Dark mode overrides - class-based for next-themes */
+/* ===== Light mode values ===== */
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+
+  --primary: hsl(217 91% 60%);
+  --primary-foreground: hsl(210 40% 98%);
+
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --success: hsl(142 76% 36%);
+  --success-foreground: hsl(210 40% 98%);
+
+  --warning: hsl(45 93% 47%);
+  --warning-foreground: hsl(222.2 84% 4.9%);
+
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --ring: hsl(217 91% 60%);
+}
+
+/* ===== Dark mode values ===== */
 .dark {
-  --color-background: hsl(222.2 84% 4.9%);
-  --color-foreground: hsl(210 40% 98%);
+  --background: hsl(222.2 84% 4.9%);
+  --foreground: hsl(210 40% 98%);
 
-  --color-card: hsl(222.2 84% 4.9%);
-  --color-card-foreground: hsl(210 40% 98%);
+  --card: hsl(222.2 84% 4.9%);
+  --card-foreground: hsl(210 40% 98%);
 
-  --color-popover: hsl(222.2 84% 4.9%);
-  --color-popover-foreground: hsl(210 40% 98%);
+  --popover: hsl(222.2 84% 4.9%);
+  --popover-foreground: hsl(210 40% 98%);
 
-  --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(217 91% 60%);
+  --primary-foreground: hsl(222.2 84% 4.9%);
 
-  --color-secondary: hsl(217.2 32.6% 17.5%);
-  --color-secondary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(217.2 32.6% 17.5%);
+  --secondary-foreground: hsl(210 40% 98%);
 
-  --color-muted: hsl(217.2 32.6% 17.5%);
-  --color-muted-foreground: hsl(215 20.2% 65.1%);
+  --muted: hsl(217.2 32.6% 17.5%);
+  --muted-foreground: hsl(215 20.2% 65.1%);
 
-  --color-accent: hsl(217.2 32.6% 17.5%);
-  --color-accent-foreground: hsl(210 40% 98%);
+  --accent: hsl(217.2 32.6% 17.5%);
+  --accent-foreground: hsl(210 40% 98%);
 
-  --color-destructive: hsl(0 62.8% 50.6%);
-  --color-destructive-foreground: hsl(210 40% 98%);
+  --destructive: hsl(0 62.8% 50.6%);
+  --destructive-foreground: hsl(210 40% 98%);
 
-  --color-border: hsl(217.2 32.6% 17.5%);
-  --color-input: hsl(217.2 32.6% 17.5%);
-  --color-ring: hsl(224.3 76.3% 48%);
+  --success: hsl(142 71% 45%);
+  --success-foreground: hsl(210 40% 98%);
+
+  --warning: hsl(48 96% 53%);
+  --warning-foreground: hsl(222.2 84% 4.9%);
+
+  --border: hsl(217.2 32.6% 17.5%);
+  --input: hsl(217.2 32.6% 17.5%);
+  --ring: hsl(224.3 76.3% 48%);
 }
 
 /* ===== Base Styles ===== */
@@ -120,12 +155,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(214.3 31.8% 80%);
+  background: var(--color-muted-foreground);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(214.3 31.8% 70%);
+  background: var(--color-foreground);
 }
 
 /* ===== Focus Visible Styles ===== */

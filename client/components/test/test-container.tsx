@@ -12,6 +12,8 @@ import { useTimer } from "@/hooks/use-timer";
 import { useTest } from "@/hooks/use-test";
 import { TestPaper, TestResults } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { saveTestResult } from "@/lib/test-storage";
 
 interface TestContainerProps {
   testPaper: TestPaper;
@@ -19,6 +21,7 @@ interface TestContainerProps {
 
 export function TestContainer({ testPaper }: TestContainerProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [direction, setDirection] = useState(0);
 
@@ -33,7 +36,11 @@ export function TestContainer({ testPaper }: TestContainerProps) {
   const test = useTest({
     testPaper,
     onSubmit: (results: TestResults) => {
-      // Store results and navigate
+      // Persist to localStorage for dashboard stats
+      if (user?.email) {
+        saveTestResult(user.email, results);
+      }
+      // Store in sessionStorage for immediate results page display
       sessionStorage.setItem("testResults", JSON.stringify(results));
       router.push(`/results/${testPaper.id}`);
     },

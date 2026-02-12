@@ -13,16 +13,18 @@ import {
   StatsOverview,
   QuickInsights,
 } from "@/components/dashboard";
-import {
-  mockSubjects,
-  mockRecentTests,
-  mockDashboardStats,
-} from "@/data/mock";
+import { mockSubjects } from "@/data/mock";
 import { DashboardFilters } from "@/types";
 import { pageVariants } from "@/lib/animations";
+import { useAuth } from "@/contexts/auth-context";
+import { computeStats, getRecentTests } from "@/lib/test-storage";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<DashboardFilters>({});
+
+  const stats = useMemo(() => computeStats(user?.email || ""), [user?.email]);
+  const recentTests = useMemo(() => getRecentTests(user?.email || ""), [user?.email]);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter subjects based on search and filters
@@ -74,7 +76,7 @@ export default function DashboardPage() {
       />
 
       {/* Stats Overview */}
-      <StatsOverview stats={mockDashboardStats} />
+      <StatsOverview stats={stats} />
 
       {/* Main Content Grid */}
       <div className="grid gap-8 lg:grid-cols-3">
@@ -119,12 +121,12 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Quick Insights */}
           <QuickInsights
-            strongestTopic={mockDashboardStats.strongestTopic}
-            weakestTopic={mockDashboardStats.weakestTopic}
+            strongestTopic={stats.strongestTopic}
+            weakestTopic={stats.weakestTopic}
           />
 
           {/* Recent Tests */}
-          <RecentTests tests={mockRecentTests} />
+          <RecentTests tests={recentTests} />
         </div>
       </div>
     </motion.div>

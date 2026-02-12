@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { mockDashboardStats, mockRecentTests } from "@/data/mock";
+import { computeStats, getRecentTests } from "@/lib/test-storage";
 import { pageVariants, cardVariants } from "@/lib/animations";
 import { formatDate, getScoreColor } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
@@ -50,8 +50,8 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  const stats = mockDashboardStats;
-  const recentTests = mockRecentTests;
+  const stats = useMemo(() => computeStats(user?.email || ""), [user?.email]);
+  const recentTests = useMemo(() => getRecentTests(user?.email || ""), [user?.email]);
 
   return (
     <div className="min-h-screen bg-muted/30">

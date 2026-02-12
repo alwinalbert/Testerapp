@@ -2,14 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { RecentTests } from "@/components/dashboard";
-import { mockRecentTests } from "@/data/mock";
 import { pageVariants } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { getRecentTests } from "@/lib/test-storage";
 
 export default function ResultsIndexPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const recentTests = useMemo(() => getRecentTests(user?.email || "", 50), [user?.email]);
 
   return (
     <motion.div
@@ -31,9 +35,9 @@ export default function ResultsIndexPage() {
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-lg font-semibold mb-4">Recent Tests</h3>
-            {mockRecentTests.length > 0 ? (
+            {recentTests.length > 0 ? (
               <div className="space-y-3">
-                {mockRecentTests.map((test) => (
+                {recentTests.map((test) => (
                   <div
                     key={test.id}
                     onClick={() => router.push(`/results/${test.id}`)}
