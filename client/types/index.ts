@@ -1,3 +1,11 @@
+// ===== Exam Board Types =====
+export type ExamBoard =
+  | "cambridge_igcse"
+  | "edexcel_igcse"
+  | "ib_diploma"
+  | "a_levels"
+  | "general";
+
 // ===== User & Authentication Types =====
 
 export interface User {
@@ -73,6 +81,8 @@ export interface TestMetadata {
   difficulty_distribution: DifficultyDistribution;
   duration_minutes: number;
   total_marks: number;
+  examBoard?: ExamBoard;
+  targetGrade?: string;
 }
 
 export interface TestQuestion {
@@ -159,6 +169,8 @@ export interface TestConfig {
   questionType: QuestionType;
   difficulty: DifficultyDistribution;
   numberOfQuestions: number;
+  examBoard: ExamBoard;
+  targetGrade: string;
 }
 
 // ===== Subject & Topic Types =====

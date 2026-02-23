@@ -9,10 +9,11 @@ import {
   TopicSelector,
   DifficultySelector,
   TestConfigSummary,
+  ExamBoardSelector,
 } from "@/components/test-builder";
 import { Separator } from "@/components/ui/separator";
 import { mockSubjects, generateMockTestPaper } from "@/data/mock";
-import { TestConfig, DifficultyDistribution, QuestionType } from "@/types";
+import { TestConfig, DifficultyDistribution, QuestionType, ExamBoard } from "@/types";
 import { pageVariants } from "@/lib/animations";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { generateTestPaper, transformN8nTestPaper } from "@/lib/api";
@@ -28,6 +29,8 @@ function TestBuilderContent() {
     questionType: "mixed",
     difficulty: { easy: 3, medium: 4, hard: 3 },
     numberOfQuestions: 10,
+    examBoard: "cambridge_igcse",
+    targetGrade: "B",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -101,6 +104,20 @@ function TestBuilderContent() {
     }));
   };
 
+  const handleExamBoardChange = (board: ExamBoard) => {
+    setConfig((prev) => ({ ...prev, examBoard: board, targetGrade: "" }));
+  };
+
+  const handleTargetGradeChange = (grade: string, preset: DifficultyDistribution) => {
+    const total = preset.easy + preset.medium + preset.hard;
+    setConfig((prev) => ({
+      ...prev,
+      targetGrade: grade,
+      difficulty: preset,
+      numberOfQuestions: total,
+    }));
+  };
+
   // Validation
   const isValid =
     config.subject !== "" &&
@@ -122,7 +139,9 @@ function TestBuilderContent() {
         subjectName,
         config.topics,
         config.numberOfQuestions,
-        config.difficulty
+        config.difficulty,
+        config.examBoard,
+        config.targetGrade
       );
 
       let testPaper;
@@ -130,6 +149,8 @@ function TestBuilderContent() {
       if (n8nResponse) {
         // Transform n8n response to app format
         testPaper = transformN8nTestPaper(n8nResponse);
+        testPaper.metadata.examBoard = config.examBoard;
+        testPaper.metadata.targetGrade = config.targetGrade;
         console.log("Test generated via n8n API");
       } else {
         // Fallback to mock data if n8n is unavailable
@@ -140,6 +161,8 @@ function TestBuilderContent() {
           numberOfQuestions: config.numberOfQuestions,
           difficulty: config.difficulty,
         });
+        testPaper.metadata.examBoard = config.examBoard;
+        testPaper.metadata.targetGrade = config.targetGrade;
       }
 
       // Store test paper in sessionStorage for the test page
@@ -156,6 +179,8 @@ function TestBuilderContent() {
         numberOfQuestions: config.numberOfQuestions,
         difficulty: config.difficulty,
       });
+      testPaper.metadata.examBoard = config.examBoard;
+      testPaper.metadata.targetGrade = config.targetGrade;
       sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
       router.push(`/test/${testPaper.id}`);
     } finally {
@@ -172,7 +197,7 @@ function TestBuilderContent() {
     >
       <PageHeader
         title="Create Test"
-        description="Configure your custom test by selecting subject, topics, and difficulty."
+        description="Configure your syllabus-specific test — calibrated to real grade boundaries and assessment criteria."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Create Test" },
@@ -182,6 +207,18 @@ function TestBuilderContent() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Configuration Section */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Step 0: Exam Board & Target Grade */}
+          <section>
+            <ExamBoardSelector
+              selectedBoard={config.examBoard}
+              selectedTargetGrade={config.targetGrade}
+              onBoardChange={handleExamBoardChange}
+              onTargetGradeChange={handleTargetGradeChange}
+            />
+          </section>
+
+          <Separator />
+
           {/* Step 1: Subject Selection */}
           <section>
             <SubjectSelector

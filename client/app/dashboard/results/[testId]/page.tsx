@@ -11,7 +11,9 @@ import {
   TopicPerformanceChart,
   StrengthWeaknessChart,
   SuggestionsSection,
+  GradeBoundaryPanel,
 } from "@/components/results";
+import { ExamBoard } from "@/types";
 import { TestResults } from "@/types";
 import { mockTestResults } from "@/data/mock";
 import { pageVariants } from "@/lib/animations";
@@ -96,6 +98,15 @@ export default function ResultsPage({ params }: ResultsPageProps) {
 
       {/* Score Summary */}
       <ScoreSummary results={results} />
+
+      {/* Grade Boundary Panel — shown when exam board is recorded */}
+      {results.testPaper.metadata.examBoard && (
+        <GradeBoundaryPanel
+          percentage={results.percentage}
+          examBoard={results.testPaper.metadata.examBoard as ExamBoard}
+          targetGrade={results.testPaper.metadata.targetGrade}
+        />
+      )}
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
