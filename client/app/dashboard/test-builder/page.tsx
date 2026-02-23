@@ -12,6 +12,7 @@ import {
   ExamBoardSelector,
 } from "@/components/test-builder";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { mockSubjects, generateMockTestPaper } from "@/data/mock";
 import { TestConfig, DifficultyDistribution, QuestionType, ExamBoard } from "@/types";
 import { pageVariants } from "@/lib/animations";
@@ -34,6 +35,7 @@ function TestBuilderContent() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [testMode, setTestMode] = useState<"subject" | "general">("subject");
 
   // Get the selected subject data
   const selectedSubject = mockSubjects.find((s) => s.id === config.subject);
@@ -118,11 +120,11 @@ function TestBuilderContent() {
     }));
   };
 
-  // Validation
+  // Validation — general mode only needs a target grade; subject mode needs subject + topics
   const isValid =
-    config.subject !== "" &&
-    config.topics.length > 0 &&
-    config.numberOfQuestions > 0;
+    testMode === "general"
+      ? config.targetGrade !== "" && config.numberOfQuestions > 0
+      : config.subject !== "" && config.topics.length > 0 && config.numberOfQuestions > 0;
 
   // Start test
   const handleStartTest = async () => {
@@ -131,13 +133,16 @@ function TestBuilderContent() {
     setIsLoading(true);
 
     try {
-      // Get the subject name from the selected subject
-      const subjectName = selectedSubject?.name || config.subject;
+      const subjectName =
+        testMode === "general"
+          ? `General ${config.examBoard.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Practice`
+          : selectedSubject?.name || config.subject;
+      const topicsForRequest = testMode === "general" ? [] : config.topics;
 
       // Try to generate test paper using n8n API
       const n8nResponse = await generateTestPaper(
         subjectName,
-        config.topics,
+        topicsForRequest,
         config.numberOfQuestions,
         config.difficulty,
         config.examBoard,
@@ -156,8 +161,8 @@ function TestBuilderContent() {
         // Fallback to mock data if n8n is unavailable
         console.log("n8n unavailable, using mock data");
         testPaper = generateMockTestPaper({
-          subject: config.subject,
-          topics: config.topics,
+          subject: testMode === "general" ? "general" : config.subject,
+          topics: testMode === "general" ? [] : config.topics,
           numberOfQuestions: config.numberOfQuestions,
           difficulty: config.difficulty,
         });
@@ -169,20 +174,20 @@ function TestBuilderContent() {
       sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
 
       // Navigate to test page
-      router.push(`/test/${testPaper.id}`);
+      router.push(`/dashboard/test/${testPaper.id}`);
     } catch (error) {
       console.error("Error generating test:", error);
       // Fallback to mock on error
       const testPaper = generateMockTestPaper({
-        subject: config.subject,
-        topics: config.topics,
+        subject: testMode === "general" ? "general" : config.subject,
+        topics: testMode === "general" ? [] : config.topics,
         numberOfQuestions: config.numberOfQuestions,
         difficulty: config.difficulty,
       });
       testPaper.metadata.examBoard = config.examBoard;
       testPaper.metadata.targetGrade = config.targetGrade;
       sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
-      router.push(`/test/${testPaper.id}`);
+      router.push(`/dashboard/test/${testPaper.id}`);
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +212,45 @@ function TestBuilderContent() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Configuration Section */}
         <div className="lg:col-span-2 space-y-8">
+
+          {/* Mode Toggle */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              {
+                mode: "subject" as const,
+                label: "Subject Test",
+                description: "Pick subject, topics & difficulty",
+                icon: "📖",
+              },
+              {
+                mode: "general" as const,
+                label: "General Practice",
+                description: "Grade-level test across all topics — AI picks the content",
+                icon: "🎯",
+              },
+            ].map(({ mode, label, description, icon }) => (
+              <Card
+                key={mode}
+                onClick={() => setTestMode(mode)}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  testMode === mode
+                    ? "border-primary ring-2 ring-primary/30"
+                    : "border-border"
+                }`}
+              >
+                <CardContent className="flex items-start gap-3 p-4">
+                  <span className="text-2xl">{icon}</span>
+                  <div>
+                    <p className="font-semibold">{label}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Separator />
+
           {/* Step 0: Exam Board & Target Grade */}
           <section>
             <ExamBoardSelector
@@ -217,33 +261,36 @@ function TestBuilderContent() {
             />
           </section>
 
+          {/* Subject + Topic selection — only in subject mode */}
+          {testMode === "subject" && (
+            <>
+              <Separator />
+
+              <section>
+                <SubjectSelector
+                  subjects={mockSubjects}
+                  selectedSubject={config.subject}
+                  onSelect={handleSubjectSelect}
+                />
+              </section>
+
+              <Separator />
+
+              <section>
+                <TopicSelector
+                  topics={selectedSubject?.topics || []}
+                  selectedTopics={config.topics}
+                  onToggle={handleTopicToggle}
+                  onSelectAll={handleSelectAllTopics}
+                  onClearAll={handleClearAllTopics}
+                />
+              </section>
+            </>
+          )}
+
           <Separator />
 
-          {/* Step 1: Subject Selection */}
-          <section>
-            <SubjectSelector
-              subjects={mockSubjects}
-              selectedSubject={config.subject}
-              onSelect={handleSubjectSelect}
-            />
-          </section>
-
-          <Separator />
-
-          {/* Step 2: Topic Selection */}
-          <section>
-            <TopicSelector
-              topics={selectedSubject?.topics || []}
-              selectedTopics={config.topics}
-              onToggle={handleTopicToggle}
-              onSelectAll={handleSelectAllTopics}
-              onClearAll={handleClearAllTopics}
-            />
-          </section>
-
-          <Separator />
-
-          {/* Step 3: Question Type & Difficulty */}
+          {/* Question Type & Difficulty */}
           <section>
             <DifficultySelector
               distribution={config.difficulty}

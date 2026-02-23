@@ -24,8 +24,8 @@ import { useAuth } from "@/contexts/auth-context";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/test-builder", label: "Create Test", icon: FileText },
-  { href: "/results", label: "Results", icon: BarChart3 },
+  { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
+  { href: "/dashboard/results", label: "Results", icon: BarChart3 },
 ];
 
 interface NavbarProps {

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { PageHeader } from "@/components/shared/page-header";
-import { RecentTests } from "@/components/dashboard";
 import { pageVariants } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
@@ -40,7 +39,7 @@ export default function ResultsIndexPage() {
                 {recentTests.map((test) => (
                   <div
                     key={test.id}
-                    onClick={() => router.push(`/results/${test.id}`)}
+                    onClick={() => router.push(`/dashboard/results/${test.id}`)}
                     className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
                   >
                     <div className="flex-1">
@@ -61,10 +60,10 @@ export default function ResultsIndexPage() {
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">
-                  You haven't taken any tests yet.
+                  You haven&apos;t taken any tests yet.
                 </p>
                 <button
-                  onClick={() => router.push("/test-builder")}
+                  onClick={() => router.push("/dashboard/test-builder")}
                   className="text-primary hover:underline"
                 >
                   Create your first test

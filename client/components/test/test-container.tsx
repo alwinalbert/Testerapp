@@ -42,7 +42,7 @@ export function TestContainer({ testPaper }: TestContainerProps) {
       }
       // Store in sessionStorage for immediate results page display
       sessionStorage.setItem("testResults", JSON.stringify(results));
-      router.push(`/results/${testPaper.id}`);
+      router.push(`/dashboard/results/${testPaper.id}`);
     },
   });
 
@@ -73,7 +73,7 @@ export function TestContainer({ testPaper }: TestContainerProps) {
   };
 
   const handleConfirmSubmit = async () => {
-    const results = await test.submitTest();
+    await test.submitTest();
     // Navigation is handled in the onSubmit callback
   };
 

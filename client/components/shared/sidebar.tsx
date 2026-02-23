@@ -7,10 +7,8 @@ import {
   LayoutDashboard,
   FileText,
   BarChart3,
-  History,
   BookOpen,
   Settings,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -22,15 +20,12 @@ import { sidebarVariants } from "@/lib/animations";
 
 const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/test-builder", label: "Create Test", icon: FileText },
-  { href: "/results", label: "My Results", icon: BarChart3 },
-  { href: "/history", label: "Test History", icon: History },
+  { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
+  { href: "/dashboard/results", label: "My Results", icon: BarChart3 },
 ];
 
 const secondaryNavItems = [
-  { href: "/subjects", label: "Browse Subjects", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/help", label: "Help & Support", icon: HelpCircle },
 ];
 
 interface SidebarProps {

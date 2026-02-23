@@ -35,7 +35,7 @@ export function SubjectCard({ subject, index = 0 }: SubjectCardProps) {
   const Icon = iconMap[subject.icon] || BookOpen;
 
   return (
-    <Link href={`/test-builder?subject=${subject.id}`}>
+    <Link href={`/dashboard/test-builder?subject=${subject.id}`}>
       <motion.div
         variants={cardVariants}
         initial="initial"
@@ -100,7 +100,7 @@ export function SubjectCardCompact({ subject }: { subject: Subject }) {
   const Icon = iconMap[subject.icon] || BookOpen;
 
   return (
-    <Link href={`/test-builder?subject=${subject.id}`}>
+    <Link href={`/dashboard/test-builder?subject=${subject.id}`}>
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Card className="cursor-pointer transition-shadow hover:shadow-md">
           <CardContent className="p-4 flex items-center gap-3">

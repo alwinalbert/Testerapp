@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, SectionHeader } from "@/components/shared/page-header";
 import {
@@ -65,14 +63,6 @@ export default function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description={`Welcome back${user?.name ? `, ${user.name}` : ""}! Continue your learning journey.`}
-        actions={
-          <Button asChild size="lg" className="gap-2">
-            <Link href="/test-builder">
-              <Plus className="h-4 w-4" />
-              Create Test
-            </Link>
-          </Button>
-        }
       />
 
       {/* Stats Overview */}
