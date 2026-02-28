@@ -24,10 +24,6 @@ export default function ResultsIndexPage() {
       <PageHeader
         title="Test Results"
         description="View all your completed test results"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Results" },
-        ]}
       />
 
       <div className="max-w-4xl">

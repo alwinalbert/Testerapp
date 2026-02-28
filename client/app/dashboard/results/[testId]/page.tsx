@@ -12,6 +12,7 @@ import {
   StrengthWeaknessChart,
   SuggestionsSection,
   GradeBoundaryPanel,
+  ResultActions,
 } from "@/components/results";
 import { ExamBoard } from "@/types";
 import { TestResults } from "@/types";
@@ -22,7 +23,7 @@ interface ResultsPageProps {
   params: Promise<{ testId: string }>;
 }
 
-export default function ResultsPage({ params }: ResultsPageProps) {
+export default function ResultsPage(_: ResultsPageProps) {
   const router = useRouter();
   const [results, setResults] = useState<TestResults | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,10 +91,13 @@ export default function ResultsPage({ params }: ResultsPageProps) {
       <PageHeader
         title="Test Results"
         description={results.testPaper.metadata.title}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Results" },
-        ]}
+        actions={
+          <ResultActions
+            testTitle={results.testPaper.metadata.title}
+            percentage={results.percentage}
+            grade={results.testPaper.metadata.targetGrade}
+          />
+        }
       />
 
       {/* Score Summary */}

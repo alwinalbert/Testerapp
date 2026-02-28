@@ -15,6 +15,7 @@ import {
   User,
   Sun,
   Moon,
+  GraduationCap,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "next-themes";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
   { href: "/dashboard/results", label: "Results", icon: BarChart3 },
+  { href: "/dashboard/teacher", label: "Teacher", icon: GraduationCap },
 ];
 
 interface NavbarProps {
@@ -49,7 +51,7 @@ export function Navbar({ user }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
+      <div className="px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
@@ -69,7 +71,7 @@ export function Navbar({ user }: NavbarProps) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:gap-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+              const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(`${item.href}/`));
               return (
                 <Link key={item.href} href={item.href}>
                   <motion.div
@@ -173,6 +175,13 @@ export function Navbar({ user }: NavbarProps) {
                   </Link>
                 );
               })}
+              <div className="my-2 border-t" />
+              <Link href="/settings" onClick={() => setMobileMenuOpen(false)}>
+                <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-accent transition-colors">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </div>
+              </Link>
               <div className="my-2 border-t" />
               <div className="flex items-center gap-3 px-3 py-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">

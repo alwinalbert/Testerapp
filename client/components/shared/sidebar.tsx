@@ -9,6 +9,7 @@ import {
   BarChart3,
   BookOpen,
   Settings,
+  GraduationCap,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -22,6 +23,10 @@ const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
   { href: "/dashboard/results", label: "My Results", icon: BarChart3 },
+];
+
+const teacherNavItems = [
+  { href: "/dashboard/teacher", label: "Teacher", icon: GraduationCap },
 ];
 
 const secondaryNavItems = [
@@ -53,6 +58,37 @@ export function Sidebar({ className }: SidebarProps) {
               const isActive =
                 pathname === item.href ||
                 pathname?.startsWith(`${item.href}/`);
+              return (
+                <Link key={item.href} href={item.href}>
+                  <motion.div
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <Separator className="my-4 mx-3" />
+
+          {/* Teacher section */}
+          {!collapsed && (
+            <p className="px-6 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Teacher
+            </p>
+          )}
+          <nav className="space-y-1 px-3">
+            {teacherNavItems.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
               return (
                 <Link key={item.href} href={item.href}>
                   <motion.div
@@ -183,6 +219,28 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       )}
                     >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <Separator className="my-4 mx-3" />
+
+            <p className="px-6 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Teacher
+            </p>
+            <nav className="space-y-1 px-3 mb-2">
+              {teacherNavItems.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                return (
+                  <Link key={item.href} href={item.href} onClick={onClose}>
+                    <div className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}>
                       <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </div>

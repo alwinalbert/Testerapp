@@ -4,3 +4,4 @@ export { TopicSelector } from "./topic-selector";
 export { DifficultySelector } from "./difficulty-selector";
 export { TestConfigSummary } from "./test-config-summary";
 export { ExamBoardSelector } from "./exam-board-selector";
+export { PaperSelector } from "./paper-selector";

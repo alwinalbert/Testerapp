@@ -11,7 +11,7 @@ import {
   StatsOverview,
   QuickInsights,
 } from "@/components/dashboard";
-import { mockSubjects } from "@/data/mock";
+import { mockSubjects } from "@/data/subjects";
 import { DashboardFilters } from "@/types";
 import { pageVariants } from "@/lib/animations";
 import { useAuth } from "@/contexts/auth-context";

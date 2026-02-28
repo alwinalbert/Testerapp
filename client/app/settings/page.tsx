@@ -15,11 +15,14 @@ import {
   Eye,
   Save,
   Check,
+  Plug,
+  ExternalLink,
 } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -114,10 +117,6 @@ export default function SettingsPage() {
           <PageHeader
             title="Settings"
             description="Manage your preferences and account settings."
-            breadcrumbs={[
-              { label: "Dashboard", href: "/dashboard" },
-              { label: "Settings" },
-            ]}
             actions={
               <Button className="gap-2" onClick={handleSave}>
                 {saved ? (
@@ -323,6 +322,84 @@ export default function SettingsPage() {
             </Card>
           </motion.div>
 
+          {/* Integrations */}
+          <motion.div variants={cardVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plug className="h-5 w-5" />
+                  Integrations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Connect TestPrep to your school's existing tools. Integrations sync class rosters, assignments and results automatically.
+                </p>
+
+                {[
+                  {
+                    name: "ManageBac",
+                    description: "Sync classes, units and student data from your ManageBac school account.",
+                    logo: "🎓",
+                    status: "coming_soon",
+                  },
+                  {
+                    name: "Google Classroom",
+                    description: "Import class rosters and push assignments directly into Google Classroom.",
+                    logo: "📚",
+                    status: "coming_soon",
+                  },
+                  {
+                    name: "Microsoft Teams for Education",
+                    description: "Assign tests and post results inside your Teams channels.",
+                    logo: "💼",
+                    status: "coming_soon",
+                  },
+                  {
+                    name: "Canvas LMS",
+                    description: "Integrate with Canvas to sync grades and assignments seamlessly.",
+                    logo: "🖼",
+                    status: "coming_soon",
+                  },
+                ].map((integration, i) => (
+                  <div key={integration.name}>
+                    {i > 0 && <Separator className="mb-3" />}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-muted text-xl">
+                          {integration.logo}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium">{integration.name}</p>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              Coming Soon
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 max-w-sm">
+                            {integration.description}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" disabled className="shrink-0 gap-1.5">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Connect
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="mt-4 rounded-lg border border-dashed p-4 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Missing an integration?{" "}
+                    <span className="text-primary cursor-pointer hover:underline">Let us know</span>
+                    {" "}and we'll prioritise it.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Danger Zone */}
           <motion.div variants={cardVariants}>
             <Card className="border-destructive/50">
@@ -358,6 +435,9 @@ export default function SettingsPage() {
           </motion.div>
         </motion.div>
       </main>
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+        © 2026 TestPrep by Edukko. All rights reserved.
+      </footer>
     </div>
   );
 }

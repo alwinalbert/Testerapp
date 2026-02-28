@@ -6,7 +6,6 @@ import {
   User,
   Mail,
   BookOpen,
-  Calendar,
   Trophy,
   Target,
   TrendingUp,
@@ -26,6 +25,8 @@ import { computeStats, getRecentTests } from "@/lib/test-storage";
 import { pageVariants, cardVariants } from "@/lib/animations";
 import { formatDate, getScoreColor } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { EXAM_BOARDS } from "@/data/exam-boards";
+import { ExamBoard } from "@/types";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -33,9 +34,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({
     name: user?.name || "Guest",
     email: user?.email || "",
-    syllabus: "IGCSE",
-    grade: "Grade 10",
-    school: "International Academy",
+    examBoard: "cambridge_igcse" as ExamBoard,
+    school: "",
   });
 
   const [editedProfile, setEditedProfile] = useState(profile);
@@ -66,10 +66,6 @@ export default function ProfilePage() {
           <PageHeader
             title="My Profile"
             description="View and manage your profile information."
-            breadcrumbs={[
-              { label: "Dashboard", href: "/dashboard" },
-              { label: "Profile" },
-            ]}
           />
 
           <div className="grid gap-8 lg:grid-cols-3">
@@ -87,8 +83,10 @@ export default function ProfilePage() {
                         {profile.email}
                       </p>
                       <div className="flex gap-2 mt-3">
-                        <Badge variant="secondary">{profile.syllabus}</Badge>
-                        <Badge variant="secondary">{profile.grade}</Badge>
+                        <Badge variant="secondary">
+                          {EXAM_BOARDS.find((b) => b.id === profile.examBoard)?.icon}{" "}
+                          {EXAM_BOARDS.find((b) => b.id === profile.examBoard)?.shortName}
+                        </Badge>
                       </div>
                     </div>
 
@@ -209,47 +207,54 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="syllabus">Syllabus</Label>
-                        {isEditing ? (
-                          <Input
-                            id="syllabus"
-                            value={editedProfile.syllabus}
-                            onChange={(e) =>
-                              setEditedProfile({
-                                ...editedProfile,
-                                syllabus: e.target.value,
-                              })
-                            }
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
-                            <BookOpen className="h-4 w-4 text-muted-foreground" />
-                            {profile.syllabus}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
                         <Label htmlFor="school">School</Label>
                         {isEditing ? (
                           <Input
                             id="school"
                             value={editedProfile.school}
+                            placeholder="e.g. International School of Geneva"
                             onChange={(e) =>
-                              setEditedProfile({
-                                ...editedProfile,
-                                school: e.target.value,
-                              })
+                              setEditedProfile({ ...editedProfile, school: e.target.value })
                             }
                           />
                         ) : (
                           <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            {profile.school}
+                            <BookOpen className="h-4 w-4 text-muted-foreground" />
+                            {profile.school || <span className="text-muted-foreground">Not set</span>}
                           </div>
                         )}
                       </div>
                     </div>
+
+                    {/* Exam Board */}
+                    <div className="space-y-2">
+                      <Label>Exam Board</Label>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {EXAM_BOARDS.filter((b) => b.id !== "general").map((board) => (
+                          <button
+                            key={board.id}
+                            type="button"
+                            disabled={!isEditing}
+                            onClick={() =>
+                              isEditing &&
+                              setEditedProfile({ ...editedProfile, examBoard: board.id as ExamBoard })
+                            }
+                            className={`rounded-lg border px-3 py-2.5 text-left text-sm transition-all
+                              ${(isEditing ? editedProfile.examBoard : profile.examBoard) === board.id
+                                ? "border-primary bg-primary/10 text-primary font-medium"
+                                : "border-border bg-card text-muted-foreground"
+                              }
+                              ${isEditing ? "hover:border-primary/60 cursor-pointer" : "cursor-default"}
+                            `}
+                          >
+                            <span className="text-base">{board.icon}</span>
+                            <p className="mt-1 font-medium leading-none text-foreground">{board.shortName}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{board.name}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                   </CardContent>
                 </Card>
               </motion.div>
@@ -294,6 +299,9 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </main>
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+        © 2026 TestPrep by Edukko. All rights reserved.
+      </footer>
     </div>
   );
 }

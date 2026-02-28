@@ -5,3 +5,4 @@ export { TopicPerformanceChart } from "./topic-performance-chart";
 export { StrengthWeaknessChart, ScoreDistributionChart } from "./strength-weakness-chart";
 export { SuggestionsSection } from "./suggestions-section";
 export { GradeBoundaryPanel } from "./grade-boundary-panel";
+export { ResultActions } from "./result-actions";

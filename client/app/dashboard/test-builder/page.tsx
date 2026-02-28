@@ -10,11 +10,14 @@ import {
   DifficultySelector,
   TestConfigSummary,
   ExamBoardSelector,
+  PaperSelector,
 } from "@/components/test-builder";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockSubjects, generateMockTestPaper } from "@/data/mock";
+import { generateMockTestPaper } from "@/data/mock";
+import { getSubjectsForBoard } from "@/data/subjects";
 import { TestConfig, DifficultyDistribution, QuestionType, ExamBoard } from "@/types";
+import { PastPaper } from "@/data/past-papers";
 import { pageVariants } from "@/lib/animations";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { generateTestPaper, transformN8nTestPaper } from "@/lib/api";
@@ -35,10 +38,15 @@ function TestBuilderContent() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [testMode, setTestMode] = useState<"subject" | "general">("subject");
+  const [testMode, setTestMode] = useState<"subject" | "general" | "paper">("subject");
+  const [selectedPaper, setSelectedPaper] = useState<PastPaper | null>(null);
+  const [selectedSession, setSelectedSession] = useState<string>("");
+
+  // Subjects filtered by selected exam board
+  const boardSubjects = getSubjectsForBoard(config.examBoard);
 
   // Get the selected subject data
-  const selectedSubject = mockSubjects.find((s) => s.id === config.subject);
+  const selectedSubject = boardSubjects.find((s) => s.id === config.subject);
 
   // Auto-select all topics when subject changes
   useEffect(() => {
@@ -52,7 +60,7 @@ function TestBuilderContent() {
 
   // Update handlers
   const handleSubjectSelect = (subjectId: string) => {
-    const subject = mockSubjects.find((s) => s.id === subjectId);
+    const subject = boardSubjects.find((s) => s.id === subjectId);
     setConfig((prev) => ({
       ...prev,
       subject: subjectId,
@@ -107,7 +115,7 @@ function TestBuilderContent() {
   };
 
   const handleExamBoardChange = (board: ExamBoard) => {
-    setConfig((prev) => ({ ...prev, examBoard: board, targetGrade: "" }));
+    setConfig((prev) => ({ ...prev, examBoard: board, targetGrade: "", subject: "", topics: [] }));
   };
 
   const handleTargetGradeChange = (grade: string, preset: DifficultyDistribution) => {
@@ -120,9 +128,11 @@ function TestBuilderContent() {
     }));
   };
 
-  // Validation — general mode only needs a target grade; subject mode needs subject + topics
+  // Validation
   const isValid =
-    testMode === "general"
+    testMode === "paper"
+      ? selectedPaper !== null && selectedSession !== ""
+      : testMode === "general"
       ? config.targetGrade !== "" && config.numberOfQuestions > 0
       : config.subject !== "" && config.topics.length > 0 && config.numberOfQuestions > 0;
 
@@ -134,39 +144,46 @@ function TestBuilderContent() {
 
     try {
       const subjectName =
-        testMode === "general"
+        testMode === "paper"
+          ? selectedPaper!.subject
+          : testMode === "general"
           ? `General ${config.examBoard.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Practice`
           : selectedSubject?.name || config.subject;
-      const topicsForRequest = testMode === "general" ? [] : config.topics;
+      const topicsForRequest = testMode === "subject" ? config.topics : [];
+      const questionsCount =
+        testMode === "paper"
+          ? selectedPaper!.sections.reduce((sum, s) => sum + s.questionCount, 0)
+          : config.numberOfQuestions;
 
       // Try to generate test paper using n8n API
       const n8nResponse = await generateTestPaper(
         subjectName,
         topicsForRequest,
-        config.numberOfQuestions,
+        questionsCount,
         config.difficulty,
-        config.examBoard,
-        config.targetGrade
+        testMode === "paper" ? selectedPaper!.examBoard : config.examBoard,
+        config.targetGrade,
+        testMode === "paper" ? selectedPaper!.code : undefined,
+        testMode === "paper" ? selectedSession : undefined
       );
 
       let testPaper;
+      const activeExamBoard = testMode === "paper" ? selectedPaper!.examBoard : config.examBoard;
 
       if (n8nResponse) {
-        // Transform n8n response to app format
         testPaper = transformN8nTestPaper(n8nResponse);
-        testPaper.metadata.examBoard = config.examBoard;
+        testPaper.metadata.examBoard = activeExamBoard;
         testPaper.metadata.targetGrade = config.targetGrade;
         console.log("Test generated via n8n API");
       } else {
-        // Fallback to mock data if n8n is unavailable
         console.log("n8n unavailable, using mock data");
         testPaper = generateMockTestPaper({
-          subject: testMode === "general" ? "general" : config.subject,
-          topics: testMode === "general" ? [] : config.topics,
-          numberOfQuestions: config.numberOfQuestions,
+          subject: testMode === "paper" ? selectedPaper!.subject : testMode === "general" ? "general" : config.subject,
+          topics: testMode === "subject" ? config.topics : [],
+          numberOfQuestions: questionsCount,
           difficulty: config.difficulty,
         });
-        testPaper.metadata.examBoard = config.examBoard;
+        testPaper.metadata.examBoard = activeExamBoard;
         testPaper.metadata.targetGrade = config.targetGrade;
       }
 
@@ -177,17 +194,16 @@ function TestBuilderContent() {
       router.push(`/dashboard/test/${testPaper.id}`);
     } catch (error) {
       console.error("Error generating test:", error);
-      // Fallback to mock on error
-      const testPaper = generateMockTestPaper({
-        subject: testMode === "general" ? "general" : config.subject,
-        topics: testMode === "general" ? [] : config.topics,
+      const fallback = generateMockTestPaper({
+        subject: testMode === "paper" ? selectedPaper!.subject : testMode === "general" ? "general" : config.subject,
+        topics: testMode === "subject" ? config.topics : [],
         numberOfQuestions: config.numberOfQuestions,
         difficulty: config.difficulty,
       });
-      testPaper.metadata.examBoard = config.examBoard;
-      testPaper.metadata.targetGrade = config.targetGrade;
-      sessionStorage.setItem("currentTest", JSON.stringify(testPaper));
-      router.push(`/dashboard/test/${testPaper.id}`);
+      fallback.metadata.examBoard = testMode === "paper" ? selectedPaper!.examBoard : config.examBoard;
+      fallback.metadata.targetGrade = config.targetGrade;
+      sessionStorage.setItem("currentTest", JSON.stringify(fallback));
+      router.push(`/dashboard/test/${fallback.id}`);
     } finally {
       setIsLoading(false);
     }
@@ -203,10 +219,6 @@ function TestBuilderContent() {
       <PageHeader
         title="Create Test"
         description="Configure your syllabus-specific test — calibrated to real grade boundaries and assessment criteria."
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Create Test" },
-        ]}
       />
 
       <div className="grid gap-8 lg:grid-cols-3">
@@ -214,7 +226,7 @@ function TestBuilderContent() {
         <div className="lg:col-span-2 space-y-8">
 
           {/* Mode Toggle */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {[
               {
                 mode: "subject" as const,
@@ -225,8 +237,14 @@ function TestBuilderContent() {
               {
                 mode: "general" as const,
                 label: "General Practice",
-                description: "Grade-level test across all topics — AI picks the content",
+                description: "Grade-level test across all topics",
                 icon: "🎯",
+              },
+              {
+                mode: "paper" as const,
+                label: "Past Paper",
+                description: "Recreate a real exam paper by code & session",
+                icon: "📄",
               },
             ].map(({ mode, label, description, icon }) => (
               <Card
@@ -261,21 +279,18 @@ function TestBuilderContent() {
             />
           </section>
 
-          {/* Subject + Topic selection — only in subject mode */}
+          {/* Subject + Topic selection — subject mode only */}
           {testMode === "subject" && (
             <>
               <Separator />
-
               <section>
                 <SubjectSelector
-                  subjects={mockSubjects}
+                  subjects={boardSubjects}
                   selectedSubject={config.subject}
                   onSelect={handleSubjectSelect}
                 />
               </section>
-
               <Separator />
-
               <section>
                 <TopicSelector
                   topics={selectedSubject?.topics || []}
@@ -283,6 +298,22 @@ function TestBuilderContent() {
                   onToggle={handleTopicToggle}
                   onSelectAll={handleSelectAllTopics}
                   onClearAll={handleClearAllTopics}
+                />
+              </section>
+            </>
+          )}
+
+          {/* Past Paper selector — paper mode only */}
+          {testMode === "paper" && (
+            <>
+              <Separator />
+              <section>
+                <PaperSelector
+                  examBoard={config.examBoard}
+                  selectedPaper={selectedPaper}
+                  selectedSession={selectedSession}
+                  onPaperChange={setSelectedPaper}
+                  onSessionChange={setSelectedSession}
                 />
               </section>
             </>

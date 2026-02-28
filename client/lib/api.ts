@@ -11,6 +11,8 @@ export interface TestGeneratorRequest {
   Subject: string;
   Exam_Board?: string;
   Target_Grade?: string;
+  Paper_Code?: string;
+  Paper_Session?: string;
 }
 
 export interface N8nTestPaper {
@@ -87,7 +89,9 @@ export async function generateTestPaper(
   numberOfQuestions: number,
   difficulty: { easy: number; medium: number; hard: number },
   examBoard?: string,
-  targetGrade?: string
+  targetGrade?: string,
+  paperCode?: string,
+  paperSession?: string
 ): Promise<N8nTestPaper | null> {
   const requestBody: TestGeneratorRequest = {
     "No of Questions": numberOfQuestions,
@@ -96,6 +100,8 @@ export async function generateTestPaper(
     Subject: subject,
     ...(examBoard && { Exam_Board: examBoard }),
     ...(targetGrade && { Target_Grade: targetGrade }),
+    ...(paperCode && { Paper_Code: paperCode }),
+    ...(paperSession && { Paper_Session: paperSession }),
   };
 
   try {
