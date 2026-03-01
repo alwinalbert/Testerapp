@@ -99,6 +99,8 @@ export interface TestQuestion {
 
 export interface TestPaper {
   id: string;
+  testno?: string;
+  testid?: string;
   metadata: TestMetadata;
   questions: TestQuestion[];
   instructions: string;

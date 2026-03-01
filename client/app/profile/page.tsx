@@ -82,10 +82,22 @@ export default function ProfilePage() {
                       <p className="text-sm text-muted-foreground mt-1">
                         {profile.email}
                       </p>
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex gap-2 mt-3 flex-wrap justify-center">
                         <Badge variant="secondary">
                           {EXAM_BOARDS.find((b) => b.id === profile.examBoard)?.icon}{" "}
                           {EXAM_BOARDS.find((b) => b.id === profile.examBoard)?.shortName}
+                        </Badge>
+                        <Badge
+                          variant={
+                            user?.role === "admin"
+                              ? "destructive"
+                              : user?.role === "teacher"
+                              ? "default"
+                              : "outline"
+                          }
+                          className="capitalize"
+                        >
+                          {user?.role ?? "student"}
                         </Badge>
                       </div>
                     </div>

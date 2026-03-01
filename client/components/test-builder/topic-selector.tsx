@@ -15,6 +15,7 @@ interface TopicSelectorProps {
   onToggle: (topic: string) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
+  topicCodes?: Record<string, string>;
 }
 
 export function TopicSelector({
@@ -23,6 +24,7 @@ export function TopicSelector({
   onToggle,
   onSelectAll,
   onClearAll,
+  topicCodes,
 }: TopicSelectorProps) {
   const [customInput, setCustomInput] = useState("");
   const [customTopics, setCustomTopics] = useState<string[]>([]);
@@ -82,13 +84,20 @@ export function TopicSelector({
           className="grid gap-3 sm:grid-cols-2"
         >
           {topics.map((topic) => (
-            <motion.div key={topic} variants={staggerItemVariants}>
-              <CheckboxOption
-                id={`topic-${topic}`}
-                label={topic}
-                checked={selectedTopics.includes(topic)}
-                onCheckedChange={() => onToggle(topic)}
-              />
+            <motion.div key={topic} variants={staggerItemVariants} className="flex items-center gap-2">
+              <div className="flex-1">
+                <CheckboxOption
+                  id={`topic-${topic}`}
+                  label={topic}
+                  checked={selectedTopics.includes(topic)}
+                  onCheckedChange={() => onToggle(topic)}
+                />
+              </div>
+              {topicCodes?.[topic] && (
+                <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 font-mono text-muted-foreground">
+                  {topicCodes[topic]}
+                </Badge>
+              )}
             </motion.div>
           ))}
 

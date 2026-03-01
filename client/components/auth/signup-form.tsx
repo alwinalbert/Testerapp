@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { cardVariants } from "@/lib/animations";
 import { useAuth } from "@/contexts/auth-context";
+import type { UserRole } from "@/contexts/auth-context";
 
 const syllabuses = [
   { id: "cambridge", name: "Cambridge IGCSE" },
@@ -44,6 +45,7 @@ export function SignupForm() {
     password: "",
     confirmPassword: "",
     syllabus: "",
+    role: "student" as UserRole,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -77,7 +79,7 @@ export function SignupForm() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (!formData.syllabus) {
+    if (formData.role === "student" && !formData.syllabus) {
       newErrors.syllabus = "Please select your syllabus";
     }
 
@@ -92,7 +94,7 @@ export function SignupForm() {
 
     setIsLoading(true);
 
-    const { error } = await signup(formData.name, formData.email, formData.password);
+    const { error } = await signup(formData.name, formData.email, formData.password, formData.role);
 
     if (error) {
       setErrors({ email: error });
@@ -114,6 +116,10 @@ export function SignupForm() {
     if (errors.syllabus) {
       setErrors((prev) => ({ ...prev, syllabus: "" }));
     }
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, role: value as UserRole }));
   };
 
   return (
@@ -170,8 +176,34 @@ export function SignupForm() {
               )}
             </div>
 
-            {/* Syllabus Field */}
+            {/* Role Field */}
             <div className="space-y-2">
+              <Label>I am a...</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "student", label: "Student", desc: "I take tests" },
+                  { value: "teacher", label: "Teacher", desc: "I create tests" },
+                ].map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => handleRoleChange(r.value)}
+                    disabled={isLoading}
+                    className={`rounded-lg border px-3 py-2.5 text-left text-sm transition-all ${
+                      formData.role === r.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <p className="font-medium">{r.label}</p>
+                    <p className="text-xs text-muted-foreground">{r.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Syllabus Field — students only */}
+            {formData.role === "student" && <div className="space-y-2">
               <Label htmlFor="syllabus">Syllabus</Label>
               <Select
                 value={formData.syllabus}
@@ -194,7 +226,7 @@ export function SignupForm() {
               {errors.syllabus && (
                 <p className="text-sm text-destructive">{errors.syllabus}</p>
               )}
-            </div>
+            </div>}
 
             {/* Password Field */}
             <div className="space-y-2">

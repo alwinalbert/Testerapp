@@ -16,6 +16,8 @@ export interface TestGeneratorRequest {
 }
 
 export interface N8nTestPaper {
+  testno?: string;
+  testid?: string;
   test_paper: {
     metadata: {
       title: string;
@@ -129,7 +131,11 @@ export async function generateTestPaper(
     if (data.test_paper) {
       return data as N8nTestPaper;
     } else if (data.output?.test_paper) {
-      return { test_paper: data.output.test_paper };
+      return {
+        testno: data.testno ?? data.output?.testno,
+        testid: data.testid ?? data.output?.testid,
+        test_paper: data.output.test_paper,
+      };
     } else if (typeof data === "string") {
       // Parse if returned as string
       const parsed = JSON.parse(data);
@@ -152,7 +158,9 @@ export async function generateTestPaper(
 export async function submitForEvaluation(
   testPaperId: string,
   questions: { question_id: string; question_text: string }[],
-  answers: { question_id: string; answer: string }[]
+  answers: { question_id: string; answer: string }[],
+  testno?: string,
+  testid?: string
 ): Promise<N8nEvaluation | null> {
   try {
     // Use local API proxy to avoid CORS
@@ -163,6 +171,8 @@ export async function submitForEvaluation(
       },
       body: JSON.stringify({
         testPaperId,
+        ...(testno && { testno }),
+        ...(testid && { testid }),
         questions: questions.map(q => ({
           id: q.question_id,
           text: q.question_text,
@@ -276,7 +286,9 @@ export function transformN8nTestPaper(n8nPaper: N8nTestPaper): import("@/types")
   const { test_paper } = n8nPaper;
 
   return {
-    id: `test-${Date.now()}`,
+    id: n8nPaper.testid || `test-${Date.now()}`,
+    testno: n8nPaper.testno,
+    testid: n8nPaper.testid,
     metadata: {
       title: test_paper.metadata.title,
       subject: test_paper.metadata.subject,

@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   GraduationCap,
+  Building2,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "next-themes";
@@ -23,12 +24,14 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 
-const navItems = [
+const baseNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
   { href: "/dashboard/results", label: "Results", icon: BarChart3 },
-  { href: "/dashboard/teacher", label: "Teacher", icon: GraduationCap },
 ];
+
+const teacherNavItem = { href: "/dashboard/teacher", label: "Teacher", icon: GraduationCap };
+const adminNavItem = { href: "/dashboard/admin", label: "Admin", icon: Building2 };
 
 interface NavbarProps {
   user?: {
@@ -47,10 +50,18 @@ export function Navbar({ user }: NavbarProps) {
   const currentUser = user || authUser || {
     name: "Guest",
     email: "",
+    role: "student" as const,
   };
 
+  const role = authUser?.role ?? "student";
+  const navItems = [
+    ...baseNavItems,
+    ...(role === "teacher" || role === "admin" ? [teacherNavItem] : []),
+    ...(role === "admin" ? [adminNavItem] : []),
+  ];
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}

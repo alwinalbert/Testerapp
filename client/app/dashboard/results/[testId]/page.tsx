@@ -96,6 +96,7 @@ export default function ResultsPage(_: ResultsPageProps) {
             testTitle={results.testPaper.metadata.title}
             percentage={results.percentage}
             grade={results.testPaper.metadata.targetGrade}
+            results={results}
           />
         }
       />

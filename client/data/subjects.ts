@@ -4,6 +4,7 @@ import { ExamBoard } from "@/types";
 export interface BoardSubject extends Subject {
   examBoards: ExamBoard[];
   code?: string; // official paper code e.g. "0580"
+  topicCodes?: Record<string, string>; // maps topic name → syllabus unit code
 }
 
 export const ALL_SUBJECTS: BoardSubject[] = [
@@ -28,6 +29,17 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Probability",
       "Statistics",
     ],
+    topicCodes: {
+      "Number": "0580.1",
+      "Algebra": "0580.2",
+      "Coordinate Geometry": "0580.3",
+      "Geometry": "0580.4",
+      "Mensuration": "0580.5",
+      "Trigonometry": "0580.6",
+      "Vectors & Transformations": "0580.7",
+      "Probability": "0580.8",
+      "Statistics": "0580.9",
+    },
   },
   {
     id: "ib-mathematics-aa",
@@ -44,6 +56,13 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Statistics & Probability",
       "Calculus",
     ],
+    topicCodes: {
+      "Number & Algebra": "IB.T1",
+      "Functions": "IB.T2",
+      "Geometry & Trigonometry": "IB.T3",
+      "Statistics & Probability": "IB.T4",
+      "Calculus": "IB.T5",
+    },
   },
   {
     id: "ib-mathematics-ai",
@@ -60,6 +79,13 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Statistics & Probability",
       "Calculus",
     ],
+    topicCodes: {
+      "Number & Algebra": "IB.T1",
+      "Functions": "IB.T2",
+      "Geometry & Trigonometry": "IB.T3",
+      "Statistics & Probability": "IB.T4",
+      "Calculus": "IB.T5",
+    },
   },
   {
     id: "alevel-mathematics",
@@ -77,6 +103,13 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Mechanics",
       "Probability & Statistics",
     ],
+    topicCodes: {
+      "Pure 1 — Algebra & Functions": "9709.P1",
+      "Pure 2 — Trigonometry & Calculus": "9709.P2",
+      "Pure 3 — Complex Numbers & Differential Equations": "9709.P3",
+      "Mechanics": "9709.M1",
+      "Probability & Statistics": "9709.S1",
+    },
   },
   {
     id: "alevel-further-mathematics",
@@ -113,6 +146,14 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Nuclear Physics",
       "Space Physics",
     ],
+    topicCodes: {
+      "Motion, Forces & Energy": "0625.1",
+      "Thermal Physics": "0625.2",
+      "Waves & Light": "0625.3",
+      "Electricity & Magnetism": "0625.4",
+      "Nuclear Physics": "0625.5",
+      "Space Physics": "0625.6",
+    },
   },
   {
     id: "ib-physics",
@@ -173,6 +214,16 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Organic Chemistry",
       "Experimental Techniques",
     ],
+    topicCodes: {
+      "States of Matter": "0620.1",
+      "Atomic Structure": "0620.2",
+      "Chemical Bonding": "0620.3",
+      "Stoichiometry": "0620.4",
+      "Electrochemistry": "0620.5",
+      "Acids, Bases & Salts": "0620.6",
+      "Organic Chemistry": "0620.7",
+      "Experimental Techniques": "0620.8",
+    },
   },
   {
     id: "ib-chemistry",
@@ -234,6 +285,18 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Evolution",
       "Ecology",
     ],
+    topicCodes: {
+      "Cell Biology": "0610.1",
+      "Enzymes": "0610.2",
+      "Plant Nutrition & Transport": "0610.3",
+      "Animal Nutrition": "0610.4",
+      "Respiration": "0610.5",
+      "Disease & Immunity": "0610.6",
+      "Reproduction": "0610.7",
+      "Inheritance & Genetics": "0610.8",
+      "Evolution": "0610.9",
+      "Ecology": "0610.10",
+    },
   },
   {
     id: "ib-biology",
@@ -456,6 +519,17 @@ export const ALL_SUBJECTS: BoardSubject[] = [
       "Databases",
       "Boolean Logic",
     ],
+    topicCodes: {
+      "Data Representation": "0478.1",
+      "Data Transmission": "0478.2",
+      "Hardware": "0478.3",
+      "Software": "0478.4",
+      "Internet & Networks": "0478.5",
+      "Algorithm Design": "0478.6",
+      "Programming": "0478.7",
+      "Databases": "0478.8",
+      "Boolean Logic": "0478.9",
+    },
   },
   {
     id: "ib-computer-science",

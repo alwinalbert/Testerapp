@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+export type UserRole = "student" | "teacher" | "admin";
+
 interface User {
   name: string;
   email: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
-  signup: (name: string, email: string, password: string) => Promise<{ error: string | null }>;
+  signup: (name: string, email: string, password: string, role?: UserRole) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
 }
 
@@ -25,7 +28,8 @@ function mapSupabaseUser(supabaseUser: SupabaseUser): User {
   const name =
     supabaseUser.user_metadata?.name ||
     email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return { name, email };
+  const role: UserRole = supabaseUser.user_metadata?.role ?? "student";
+  return { name, email, role };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -77,12 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signup = useCallback(
-    async (name: string, email: string, password: string): Promise<{ error: string | null }> => {
+    async (name: string, email: string, password: string, role: UserRole = "student"): Promise<{ error: string | null }> => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name },
+          data: { name, role },
         },
       });
 

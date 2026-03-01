@@ -298,6 +298,7 @@ function TestBuilderContent() {
                   onToggle={handleTopicToggle}
                   onSelectAll={handleSelectAllTopics}
                   onClearAll={handleClearAllTopics}
+                  topicCodes={selectedSubject?.topicCodes}
                 />
               </section>
             </>
