@@ -242,7 +242,7 @@ function TestBuilderContent() {
               },
               {
                 mode: "paper" as const,
-                label: "Past Paper",
+                label: "Paper",
                 description: "Recreate a real exam paper by code & session",
                 icon: "📄",
               },
@@ -304,7 +304,7 @@ function TestBuilderContent() {
             </>
           )}
 
-          {/* Past Paper selector — paper mode only */}
+          {/* Paper selector — paper mode only */}
           {testMode === "paper" && (
             <>
               <Separator />
