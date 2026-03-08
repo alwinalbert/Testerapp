@@ -242,7 +242,7 @@ function TestBuilderContent() {
               },
               {
                 mode: "paper" as const,
-                label: "Paper",
+                label: "Exam Paper",
                 description: "Recreate a real exam paper by code & session",
                 icon: "📄",
               },
