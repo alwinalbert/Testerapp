@@ -11,13 +11,18 @@ interface User {
   name: string;
   email: string;
   role: UserRole;
+  yearGroup?: string;
+  syllabus?: string;
+  targetExamSession?: string;
+  school?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
-  signup: (name: string, email: string, password: string, role?: UserRole) => Promise<{ error: string | null }>;
+  signup: (name: string, email: string, password: string, role?: UserRole, extraData?: Record<string, unknown>) => Promise<{ error: string | null }>;
+  loginWithOAuth: (provider: "google" | "apple") => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
 }
 
@@ -25,11 +30,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function mapSupabaseUser(supabaseUser: SupabaseUser): User {
   const email = supabaseUser.email || "";
+  const meta = supabaseUser.user_metadata ?? {};
   const name =
-    supabaseUser.user_metadata?.name ||
+    meta.name ||
     email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const role: UserRole = supabaseUser.user_metadata?.role ?? "student";
-  return { name, email, role };
+  const role: UserRole = meta.role ?? "student";
+  return {
+    name,
+    email,
+    role,
+    yearGroup: meta.year_group,
+    syllabus: meta.syllabus,
+    targetExamSession: meta.target_exam_session,
+    school: meta.school,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -81,12 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signup = useCallback(
-    async (name: string, email: string, password: string, role: UserRole = "student"): Promise<{ error: string | null }> => {
+    async (name: string, email: string, password: string, role: UserRole = "student", extraData: Record<string, unknown> = {}): Promise<{ error: string | null }> => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name, role },
+          data: { name, role, ...extraData },
         },
       });
 
@@ -94,11 +108,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message };
       }
 
-      router.push("/dashboard");
+      const destination = role === "student" ? "/onboarding/baseline" : "/dashboard";
+      router.push(destination);
       router.refresh();
       return { error: null };
     },
     [supabase.auth, router]
+  );
+
+  const loginWithOAuth = useCallback(
+    async (provider: "google" | "apple"): Promise<{ error: string | null }> => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) return { error: error.message };
+      return { error: null };
+    },
+    [supabase.auth]
   );
 
   const logout = useCallback(async () => {
@@ -109,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase.auth, router]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, loginWithOAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

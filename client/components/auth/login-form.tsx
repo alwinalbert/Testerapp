@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cardVariants } from "@/lib/animations";
 import { useAuth } from "@/contexts/auth-context";
+import { SSOButtons } from "./sso-buttons";
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -153,6 +154,7 @@ export function LoginForm() {
                 "Sign in"
               )}
             </Button>
+            <SSOButtons />
             <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link href="/auth/signup" className="text-primary hover:underline font-medium">
