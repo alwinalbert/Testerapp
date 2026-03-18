@@ -185,6 +185,43 @@ export function computeSubjectStats(userEmail: string, syllabus?: string): Subje
   return stats;
 }
 
+export interface ProgressDataPoint {
+  name: string;        // "Test 1", "Test 2" …
+  date: string;        // "1 Mar"
+  [subject: string]: string | number;
+}
+
+export function getDailyQuestionsCount(userEmail: string): number {
+  const results = getTestResults(userEmail);
+  const today = new Date().toDateString();
+  return results
+    .filter((r) => new Date(r.completedAt).toDateString() === today)
+    .reduce((sum, r) => sum + r.testPaper.questions.length, 0);
+}
+
+export function getProgressOverTime(userEmail: string): {
+  data: ProgressDataPoint[];
+  subjects: string[];
+} {
+  const results = getTestResults(userEmail);
+  if (results.length === 0) return { data: [], subjects: [] };
+
+  const sorted = [...results].sort(
+    (a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
+  );
+
+  const subjectsSet = new Set<string>();
+  for (const r of sorted) subjectsSet.add(r.testPaper.metadata.subject || "General");
+
+  const data: ProgressDataPoint[] = sorted.map((r, i) => ({
+    name: `#${i + 1}`,
+    date: new Date(r.completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+    [r.testPaper.metadata.subject || "General"]: Math.round(r.percentage),
+  }));
+
+  return { data, subjects: Array.from(subjectsSet) };
+}
+
 export function computeStreak(userEmail: string): number {
   const results = getTestResults(userEmail);
   if (results.length === 0) return 0;

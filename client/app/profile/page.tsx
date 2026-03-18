@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   User, Mail, BookOpen, Trophy, Target, TrendingUp, TrendingDown,
-  Minus, Edit2, Save, X, Flame, Clock, AlertTriangle,
+  Minus, Edit2, Save, X, Flame, Clock, AlertTriangle, Star,
 } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
 import { PageHeader } from "@/components/shared/page-header";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { computeStats, getRecentTests, computeSubjectStats, computeStreak } from "@/lib/test-storage";
+import { computeStats, getRecentTests, computeSubjectStats, computeStreak, getDailyQuestionsCount } from "@/lib/test-storage";
 import { pageVariants, cardVariants } from "@/lib/animations";
 import { formatDate, getScoreColor } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
@@ -33,6 +33,26 @@ function daysUntilSession(session?: string): number | null {
   const target = new Date(parseInt(year), m, 15);
   const diff = Math.ceil((target.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   return diff > 0 ? diff : null;
+}
+
+const DAILY_GOAL = 10; // questions per day
+
+interface Badge { id: string; icon: string; name: string; desc: string; earned: boolean }
+
+function computeBadges(totalTests: number, totalQuestions: number, streak: number): Badge[] {
+  const milestones = [
+    { id: "first_test",  icon: "🥚", name: "First Step",      desc: "Completed your first test",       earned: totalTests >= 1 },
+    { id: "streak_3",    icon: "🔥", name: "On Fire",         desc: "3-day study streak",              earned: streak >= 3 },
+    { id: "five_tests",  icon: "⭐", name: "Getting Started", desc: "Completed 5 tests",               earned: totalTests >= 5 },
+    { id: "q50",         icon: "📚", name: "Bookworm",        desc: "Answered 50 questions",           earned: totalQuestions >= 50 },
+    { id: "ten_tests",   icon: "🏆", name: "Dedicated",       desc: "Completed 10 tests",              earned: totalTests >= 10 },
+    { id: "q100",        icon: "💯", name: "Century",         desc: "Answered 100 questions",          earned: totalQuestions >= 100 },
+    { id: "streak_7",    icon: "🌟", name: "Week Warrior",    desc: "7-day study streak",              earned: streak >= 7 },
+    { id: "twenty_tests",icon: "🚀", name: "On Track",        desc: "Completed 20 tests",              earned: totalTests >= 20 },
+    { id: "q500",        icon: "👑", name: "Master",          desc: "Answered 500 questions",          earned: totalQuestions >= 500 },
+    { id: "streak_30",   icon: "💎", name: "Diamond",         desc: "30-day study streak",             earned: streak >= 30 },
+  ];
+  return milestones;
 }
 
 const TrendIcon = ({ trend }: { trend: "up" | "stable" | "down" }) => {
@@ -62,6 +82,8 @@ export default function ProfilePage() {
     [user?.email, user?.syllabus]
   );
   const streak = useMemo(() => computeStreak(user?.email || ""), [user?.email]);
+  const dailyCount = useMemo(() => getDailyQuestionsCount(user?.email || ""), [user?.email]);
+  const badges = useMemo(() => computeBadges(stats.totalTests, stats.totalQuestions, streak), [stats, streak]);
   const daysLeft = daysUntilSession(user?.targetExamSession);
   const prioritySubject = subjectStats.find((s) => s.isPriority);
   const isStudent = user?.role === "student";
@@ -133,6 +155,31 @@ export default function ProfilePage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Daily Goal */}
+                        <div className="rounded-lg border p-3 mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5 text-sm font-medium">
+                              <Star className="h-4 w-4 text-yellow-500" />
+                              Daily Goal
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {dailyCount}/{DAILY_GOAL} questions
+                            </span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-yellow-500 transition-all"
+                              style={{ width: `${Math.min((dailyCount / DAILY_GOAL) * 100, 100)}%` }}
+                            />
+                          </div>
+                          {dailyCount >= DAILY_GOAL && (
+                            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1.5 font-medium">
+                              🎉 Goal complete! Keep going.
+                            </p>
+                          )}
+                        </div>
+
                         <Separator className="mb-4" />
                       </>
                     )}
@@ -305,6 +352,36 @@ export default function ProfilePage() {
                           </div>
                         ))}
                       </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Achievements */}
+              {isStudent && (
+                <motion.div variants={cardVariants}>
+                  <Card>
+                    <CardHeader><CardTitle className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> Achievements</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {badges.map((badge) => (
+                          <div
+                            key={badge.id}
+                            title={badge.earned ? badge.desc : `Locked: ${badge.desc}`}
+                            className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-center transition-all ${
+                              badge.earned
+                                ? "border-yellow-300 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30"
+                                : "opacity-35 grayscale"
+                            }`}
+                          >
+                            <span className="text-2xl">{badge.icon}</span>
+                            <p className="text-xs font-medium leading-tight">{badge.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3 text-center">
+                        {badges.filter((b) => b.earned).length} / {badges.length} unlocked
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>

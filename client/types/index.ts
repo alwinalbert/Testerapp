@@ -94,7 +94,23 @@ export interface TestQuestion {
   marks: number;
   capability: string;
   type?: QuestionType;
-  options?: MCQOption[]; // For MCQ questions
+  options?: MCQOption[];
+  // Multimedia fields — populated by n8n when available
+  image_url?: string;
+  image_alt?: string;
+  passage?: string;
+  table?: { headers: string[]; rows: string[][] };
+  audio_url?: string;
+  video_url?: string;
+  // Label-the-diagram fields
+  label_positions?: LabelPosition[];
+}
+
+export interface LabelPosition {
+  id: string;
+  x: number; // % from left
+  y: number; // % from top
+  hint?: string;
 }
 
 export interface TestPaper {

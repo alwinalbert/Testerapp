@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MCQQuestion } from "./mcq-question";
 import { WrittenQuestion } from "./written-question";
+import { QuestionStem } from "./question-stem";
+import { LabelDiagramQuestion } from "./label-diagram-question";
 import { TestQuestion, UserAnswer } from "@/types";
 import { cn } from "@/lib/utils";
 import { questionSlideVariants } from "@/lib/animations";
@@ -33,6 +35,7 @@ export function QuestionCard({
   onToggleFlag,
 }: QuestionCardProps) {
   const isMCQ = question.type === "mcq" && question.options;
+  const isLabelDiagram = (question.type as string) === "label_diagram";
 
   return (
     <motion.div
@@ -73,14 +76,20 @@ export function QuestionCard({
             </Button>
           </div>
 
-          {/* Question Text */}
+          {/* Question Stem — renders passage, image, table, audio + math */}
           <div className="mb-8 mt-6">
-            <p className="text-base leading-relaxed text-foreground/90">{question.question_text}</p>
+            <QuestionStem question={question} />
           </div>
 
           {/* Answer Input */}
           <div className="mt-6">
-            {isMCQ ? (
+            {isLabelDiagram ? (
+              <LabelDiagramQuestion
+                question={question}
+                answers={answer?.answer ? JSON.parse(answer.answer) : {}}
+                onAnswerChange={(labels) => onAnswerChange(JSON.stringify(labels))}
+              />
+            ) : isMCQ ? (
               <MCQQuestion
                 question={question}
                 selectedOptionId={answer?.selected_option_id}

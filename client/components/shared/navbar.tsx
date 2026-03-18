@@ -8,6 +8,8 @@ import {
   LayoutDashboard,
   FileText,
   BarChart3,
+  TrendingUp,
+  Layers,
   Settings,
   LogOut,
   Menu,
@@ -30,6 +32,8 @@ const baseNavItems = [
   { href: "/dashboard/results", label: "Results", icon: BarChart3 },
 ];
 
+const progressNavItem = { href: "/dashboard/progress", label: "Progress", icon: TrendingUp };
+const revisionNavItem = { href: "/dashboard/revision", label: "Revise", icon: Layers };
 const teacherNavItem = { href: "/dashboard/teacher", label: "Teacher", icon: GraduationCap };
 const adminNavItem = { href: "/dashboard/admin", label: "Admin", icon: Building2 };
 
@@ -56,6 +60,7 @@ export function Navbar({ user }: NavbarProps) {
   const role = authUser?.role ?? "student";
   const navItems = [
     ...baseNavItems,
+    ...(role === "student" ? [progressNavItem, revisionNavItem] : []),
     ...(role === "teacher" || role === "admin" ? [teacherNavItem] : []),
     ...(role === "admin" ? [adminNavItem] : []),
   ];

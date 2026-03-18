@@ -5,11 +5,16 @@ import {
   FileText,
   Target,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Award,
   AlertTriangle,
+  GraduationCap,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { DashboardStats } from "@/types";
+import { SubjectStat } from "@/lib/test-storage";
 import { staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
 
 interface StatsOverviewProps {
@@ -81,17 +86,13 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
   );
 }
 
-// Single stat card for flexibility
 interface StatCardProps {
   label: string;
   value: string | number;
   icon: React.ElementType;
   color?: string;
   bgColor?: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
+  trend?: { value: number; isPositive: boolean };
 }
 
 export function StatCard({
@@ -107,9 +108,7 @@ export function StatCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-lg ${bgColor}`}
-            >
+            <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${bgColor}`}>
               <Icon className={`h-6 w-6 ${color}`} />
             </div>
             <div>
@@ -118,16 +117,8 @@ export function StatCard({
             </div>
           </div>
           {trend && (
-            <div
-              className={`flex items-center gap-1 text-sm ${
-                trend.isPositive ? "text-success" : "text-destructive"
-              }`}
-            >
-              <TrendingUp
-                className={`h-4 w-4 ${
-                  !trend.isPositive ? "rotate-180" : ""
-                }`}
-              />
+            <div className={`flex items-center gap-1 text-sm ${trend.isPositive ? "text-success" : "text-destructive"}`}>
+              <TrendingUp className={`h-4 w-4 ${!trend.isPositive ? "rotate-180" : ""}`} />
               <span>{trend.value}%</span>
             </div>
           )}
@@ -137,16 +128,12 @@ export function StatCard({
   );
 }
 
-// Quick insights section
 interface QuickInsightsProps {
   strongestTopic: string;
   weakestTopic: string;
 }
 
-export function QuickInsights({
-  strongestTopic,
-  weakestTopic,
-}: QuickInsightsProps) {
+export function QuickInsights({ strongestTopic, weakestTopic }: QuickInsightsProps) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -171,6 +158,51 @@ export function QuickInsights({
             </div>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Predicted Grades ────────────────────────────────────────────────────────
+
+const gradeColor = (grade: string) => {
+  if (["7", "A*", "A"].includes(grade)) return "bg-green-500/10 text-green-600 border-green-500/30";
+  if (["6", "5", "B", "C"].includes(grade)) return "bg-yellow-500/10 text-yellow-600 border-yellow-500/30";
+  return "bg-red-500/10 text-red-600 border-red-500/30";
+};
+
+interface PredictedGradesProps {
+  subjectStats: SubjectStat[];
+}
+
+export function PredictedGrades({ subjectStats }: PredictedGradesProps) {
+  if (subjectStats.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-primary" />
+          Predicted Grades
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2.5 pt-0">
+        {subjectStats.map((s) => (
+          <div key={s.subjectId} className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{s.subjectName}</p>
+              <p className="text-xs text-muted-foreground">On track for</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {s.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-green-500" />}
+              {s.trend === "down" && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+              {s.trend === "stable" && <Minus className="h-3.5 w-3.5 text-muted-foreground" />}
+              <Badge variant="outline" className={`text-sm font-bold px-2 ${gradeColor(s.predictedGrade)}`}>
+                {s.predictedGrade}
+              </Badge>
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

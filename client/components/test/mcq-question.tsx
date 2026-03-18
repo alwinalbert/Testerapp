@@ -5,6 +5,7 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { TestQuestion, MCQOption } from "@/types";
 import { cn } from "@/lib/utils";
 import { staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
+import { MathText } from "./question-stem";
 
 interface MCQQuestionProps {
   question: TestQuestion;
@@ -91,8 +92,10 @@ function MCQOptionButton({
         {optionLabel}
       </div>
 
-      {/* Option text */}
-      <span className="flex-1 text-[15px] leading-relaxed">{option.text}</span>
+      {/* Option text — rendered with KaTeX for math/chemistry */}
+      <span className="flex-1 text-[15px] leading-relaxed">
+        <MathText text={option.text} />
+      </span>
 
       {/* Radio indicator */}
       <div

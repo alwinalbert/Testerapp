@@ -126,6 +126,27 @@ export default function ResultsPage(_: ResultsPageProps) {
       {/* Question Review */}
       <QuestionReview results={results} />
 
+      {/* Book a Tutor CTA — shown when score is below 60% */}
+      {results.percentage < 60 && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl">🎓</div>
+          <div className="flex-1">
+            <p className="font-semibold">Struggling with this topic?</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Book a 1-to-1 session with a qualified tutor on the Edukko marketplace — tailored to your syllabus and weak areas.
+            </p>
+          </div>
+          <a
+            href="https://edukko.ae"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Find a Tutor →
+          </a>
+        </div>
+      )}
+
       {/* Suggestions */}
       <SuggestionsSection
         suggestions={results.suggestions}

@@ -10,6 +10,7 @@ import {
   RecentTests,
   StatsOverview,
   QuickInsights,
+  PredictedGrades,
 } from "@/components/dashboard";
 import { mockSubjects } from "@/data/subjects";
 import { DashboardFilters } from "@/types";
@@ -85,6 +86,7 @@ export default function DashboardPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          <PredictedGrades subjectStats={subjectStats} />
           <QuickInsights
             strongestTopic={stats.strongestTopic}
             weakestTopic={stats.weakestTopic}
