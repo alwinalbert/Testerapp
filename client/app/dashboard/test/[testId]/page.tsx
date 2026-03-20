@@ -6,6 +6,7 @@ import { TestContainer } from "@/components/test";
 import { PageLoader } from "@/components/shared/loading-spinner";
 import { TestPaper } from "@/types";
 import { mockTestPaper } from "@/data/mock";
+import { seededShuffle, generateAttemptId } from "@/lib/integrity";
 
 interface TestPageProps {
   params: Promise<{ testId: string }>;
@@ -23,7 +24,19 @@ export default function TestPage({ params }: TestPageProps) {
 
       if (storedTest) {
         try {
-          const parsed = JSON.parse(storedTest);
+          const parsed: TestPaper = JSON.parse(storedTest);
+
+          // ── Integrity: unique attempt ID per session ──────────────────────
+          parsed.id = generateAttemptId(parsed.id);
+
+          // ── Integrity: question randomisation ─────────────────────────────
+          // Shuffle using attempt ID as seed → every attempt has a unique order
+          const shuffled = seededShuffle(parsed.questions, parsed.id);
+          parsed.questions = shuffled.map((q, i) => ({
+            ...q,
+            question_number: i + 1,
+          }));
+
           setTestPaper(parsed);
           setLoading(false);
           return;
@@ -33,9 +46,13 @@ export default function TestPage({ params }: TestPageProps) {
       }
 
       // Fallback to mock test
-      // In production, this would fetch from the API using testId
       await new Promise((resolve) => setTimeout(resolve, 500));
-      setTestPaper(mockTestPaper);
+      const mock = { ...mockTestPaper, id: generateAttemptId(mockTestPaper.id) };
+      mock.questions = seededShuffle(mock.questions, mock.id).map((q, i) => ({
+        ...q,
+        question_number: i + 1,
+      }));
+      setTestPaper(mock);
       setLoading(false);
     };
 

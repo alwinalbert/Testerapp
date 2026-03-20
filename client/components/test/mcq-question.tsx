@@ -1,11 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { TestQuestion, MCQOption } from "@/types";
 import { cn } from "@/lib/utils";
 import { staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
 import { MathText } from "./question-stem";
+import { seededShuffle } from "@/lib/integrity";
 
 interface MCQQuestionProps {
   question: TestQuestion;
@@ -18,7 +20,13 @@ export function MCQQuestion({
   selectedOptionId,
   onSelect,
 }: MCQQuestionProps) {
-  const options = question.options || [];
+  // ── Integrity: shuffle options using question_id as seed ──────────────────
+  // Same question always shows same shuffled order (stable across re-renders),
+  // but different from the original order n8n returned.
+  const options = useMemo(
+    () => seededShuffle(question.options || [], question.question_id),
+    [question.question_id, question.options]
+  );
 
   return (
     <motion.div

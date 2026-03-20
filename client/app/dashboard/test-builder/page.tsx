@@ -11,12 +11,13 @@ import {
   TestConfigSummary,
   ExamBoardSelector,
   PaperSelector,
+  IntegritySettingsPanel,
 } from "@/components/test-builder";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { generateMockTestPaper } from "@/data/mock";
 import { getSubjectsForBoard } from "@/data/subjects";
-import { TestConfig, DifficultyDistribution, QuestionType, ExamBoard } from "@/types";
+import { TestConfig, DifficultyDistribution, QuestionType, ExamBoard, DEFAULT_INTEGRITY } from "@/types";
 import { PastPaper } from "@/data/past-papers";
 import { pageVariants } from "@/lib/animations";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
@@ -35,6 +36,7 @@ function TestBuilderContent() {
     numberOfQuestions: 10,
     examBoard: "cambridge_igcse",
     targetGrade: "B",
+    integrity: DEFAULT_INTEGRITY,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -174,6 +176,7 @@ function TestBuilderContent() {
         testPaper = transformN8nTestPaper(n8nResponse);
         testPaper.metadata.examBoard = activeExamBoard;
         testPaper.metadata.targetGrade = config.targetGrade;
+        testPaper.metadata.integrity = config.integrity;
         console.log("Test generated via n8n API");
       } else {
         console.log("n8n unavailable, using mock data");
@@ -185,6 +188,7 @@ function TestBuilderContent() {
         });
         testPaper.metadata.examBoard = activeExamBoard;
         testPaper.metadata.targetGrade = config.targetGrade;
+        testPaper.metadata.integrity = config.integrity;
       }
 
       // Store test paper in sessionStorage for the test page
@@ -202,6 +206,7 @@ function TestBuilderContent() {
       });
       fallback.metadata.examBoard = testMode === "paper" ? selectedPaper!.examBoard : config.examBoard;
       fallback.metadata.targetGrade = config.targetGrade;
+      fallback.metadata.integrity = config.integrity;
       sessionStorage.setItem("currentTest", JSON.stringify(fallback));
       router.push(`/dashboard/test/${fallback.id}`);
     } finally {
@@ -214,7 +219,7 @@ function TestBuilderContent() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="space-y-8"
+      className="space-y-8 pb-24"
     >
       <PageHeader
         title="Create Test"
@@ -332,6 +337,16 @@ function TestBuilderContent() {
               onQuestionTypeChange={handleQuestionTypeChange}
               onTotalQuestionsChange={handleTotalQuestionsChange}
               maxQuestions={50}
+            />
+          </section>
+
+          <Separator />
+
+          {/* Academic Integrity Settings */}
+          <section>
+            <IntegritySettingsPanel
+              settings={config.integrity}
+              onChange={(integrity) => setConfig((prev) => ({ ...prev, integrity }))}
             />
           </section>
         </div>

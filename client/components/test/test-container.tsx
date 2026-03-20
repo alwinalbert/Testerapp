@@ -10,10 +10,14 @@ import { NavigationButtons, FloatingNavigation } from "./navigation-buttons";
 import { SubmitDialog } from "./submit-dialog";
 import { useTimer } from "@/hooks/use-timer";
 import { useTest } from "@/hooks/use-test";
+import { useIntegrity } from "@/hooks/use-integrity";
+import { useQuestionTimer } from "@/hooks/use-question-timer";
 import { TestPaper, TestResults } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { saveTestResult } from "@/lib/test-storage";
+import { IntegrityOverlay, QuestionTimerBar } from "./integrity-overlay";
 
 interface TestContainerProps {
   testPaper: TestPaper;
@@ -36,13 +40,32 @@ export function TestContainer({ testPaper }: TestContainerProps) {
   const test = useTest({
     testPaper,
     onSubmit: (results: TestResults) => {
-      // Persist to localStorage for dashboard stats
       if (user?.email) {
         saveTestResult(user.email, results);
       }
-      // Store in sessionStorage for immediate results page display
       sessionStorage.setItem("testResults", JSON.stringify(results));
       router.push(`/dashboard/results/${testPaper.id}`);
+    },
+  });
+
+  const integritySettings = testPaper.metadata.integrity;
+
+  // Integrity hook — tab detection, copy/paste, right-click, fullscreen
+  const integrity = useIntegrity(integritySettings, async () => {
+    await test.submitTest();
+  });
+
+  // Per-question countdown timer
+  const questionTimer = useQuestionTimer({
+    limitSeconds: integritySettings?.timePerQuestionSeconds ?? 0,
+    questionIndex: test.currentIndex,
+    onTimeUp: () => {
+      if (test.canGoNext) {
+        setDirection(1);
+        test.nextQuestion();
+      } else {
+        setShowSubmitDialog(true);
+      }
     },
   });
 
@@ -89,6 +112,15 @@ export function TestContainer({ testPaper }: TestContainerProps) {
 
   return (
     <div className="min-h-screen bg-muted/30">
+      {/* Integrity overlay — warnings, paused state */}
+      <IntegrityOverlay
+        message={integrity.warningMessage}
+        isPaused={integrity.isTestPaused}
+        tabSwitchCount={integrity.tabSwitchCount}
+        onDismiss={integrity.dismissWarning}
+        onRequestFullScreen={integrity.requestFullScreen}
+      />
+
       {/* Linear progress bar at top */}
       <LinearTestProgress
         current={test.currentIndex}
@@ -101,9 +133,16 @@ export function TestContainer({ testPaper }: TestContainerProps) {
           <div className="flex items-center justify-between">
             {/* Test title */}
             <div className="min-w-0">
-              <h1 className="font-semibold truncate">
-                {testPaper.metadata.title}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-semibold truncate">
+                  {testPaper.metadata.title}
+                </h1>
+                {testPaper.metadata.paper_style && (
+                  <Badge variant="outline" className="shrink-0 text-xs capitalize">
+                    {testPaper.metadata.paper_style.replace("_", " ")}
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground hidden sm:block">
                 {testPaper.metadata.subject}
               </p>
@@ -129,6 +168,16 @@ export function TestContainer({ testPaper }: TestContainerProps) {
           </div>
         </div>
       </header>
+
+      {/* Per-question countdown timer bar */}
+      {questionTimer.enabled && (
+        <QuestionTimerBar
+          secondsLeft={questionTimer.secondsLeft}
+          percentage={questionTimer.percentage}
+          isLow={questionTimer.isLow}
+          isCritical={questionTimer.isCritical}
+        />
+      )}
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-6">

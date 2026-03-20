@@ -26,8 +26,48 @@ export interface AuthState {
 // ===== Question Types =====
 
 export type Difficulty = "easy" | "medium" | "hard";
-export type QuestionType = "mcq" | "written" | "mixed";
+export type QuestionType =
+  | "mcq"
+  | "written"
+  | "mixed"
+  | "data_response"
+  | "source_analysis"
+  | "label_diagram"
+  | "calculation"
+  | "extended_essay"
+  | "true_false_justify";
+
 export type AnswerType = "free_text" | "structured" | "code" | "numeric" | "boolean";
+
+// IB markband scoring
+export interface BandDescriptor {
+  band: number;
+  range: string; // e.g. "3–4"
+  descriptor: string;
+}
+
+// Sub-question used in data_response and source_analysis
+export interface SubQuestion {
+  id: string;
+  text: string;
+  marks: number;
+  answer_guidance?: string;
+}
+
+// Calculation step
+export interface CalculationStep {
+  id: string;
+  instruction: string;
+  marks: number;
+  expected?: string; // model answer for this step
+}
+
+// Extended essay rubric criterion
+export interface RubricCriterion {
+  criterion: string;
+  max_marks: number;
+  descriptor: string;
+}
 
 export interface EvaluationContract {
   answer_type: AnswerType;
@@ -83,6 +123,8 @@ export interface TestMetadata {
   total_marks: number;
   examBoard?: ExamBoard;
   targetGrade?: string;
+  paper_style?: "paper_1" | "paper_2" | "paper_3";
+  integrity?: IntegritySettings;
 }
 
 export interface TestQuestion {
@@ -104,6 +146,23 @@ export interface TestQuestion {
   video_url?: string;
   // Label-the-diagram fields
   label_positions?: LabelPosition[];
+  // Data Response / Source Analysis — sub-questions
+  sub_questions?: SubQuestion[];
+  stimulus?: { type: "table" | "image" | "text"; content?: string; image_url?: string; headers?: string[]; rows?: string[][] };
+  // Calculation with steps
+  steps?: CalculationStep[];
+  worked_solution?: string;
+  // Extended essay
+  rubric?: RubricCriterion[];
+  word_guidance?: string;
+  // True/False with justification
+  statement?: string;
+  is_true?: boolean;
+  justification_prompt?: string;
+  // IB-specific
+  is_hl_extension?: boolean;
+  markband_max?: 4 | 8;
+  band_descriptors?: BandDescriptor[];
 }
 
 export interface LabelPosition {
@@ -175,9 +234,37 @@ export interface TestResults {
   strengths: string[];
   weaknesses: string[];
   suggestions: string[];
+  startedAt: Date;
   completedAt: Date;
   timeTaken: number; // in seconds
 }
+
+// ===== Academic Integrity Types =====
+
+export interface IntegritySettings {
+  /** Tier 2 — teacher-enabled per test */
+  tabSwitchDetection: boolean;
+  copyPasteBlocking: boolean;
+  rightClickDisable: boolean;
+  fullScreenMode: boolean;
+  /** 0 = no limit per question */
+  timePerQuestionSeconds: number;
+  /** ISO datetime strings — empty string = no restriction */
+  accessWindowStart: string;
+  accessWindowEnd: string;
+  singleAttemptLock: boolean;
+}
+
+export const DEFAULT_INTEGRITY: IntegritySettings = {
+  tabSwitchDetection: false,
+  copyPasteBlocking: false,
+  rightClickDisable: false,
+  fullScreenMode: false,
+  timePerQuestionSeconds: 0,
+  accessWindowStart: "",
+  accessWindowEnd: "",
+  singleAttemptLock: false,
+};
 
 // ===== Test Builder Types =====
 
@@ -189,6 +276,7 @@ export interface TestConfig {
   numberOfQuestions: number;
   examBoard: ExamBoard;
   targetGrade: string;
+  integrity: IntegritySettings;
 }
 
 // ===== Subject & Topic Types =====

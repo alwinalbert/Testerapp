@@ -397,6 +397,7 @@ export function transformN8nEvaluation(
     strengths: strengths.length > 0 ? strengths : ["General understanding"],
     weaknesses: weaknesses.length > 0 ? weaknesses : [],
     suggestions,
+    startedAt: new Date(Date.now() - timeTaken * 1000),
     completedAt: new Date(),
     timeTaken,
   };

@@ -9,6 +9,12 @@ import { MCQQuestion } from "./mcq-question";
 import { WrittenQuestion } from "./written-question";
 import { QuestionStem } from "./question-stem";
 import { LabelDiagramQuestion } from "./label-diagram-question";
+import { DataResponseQuestion } from "./data-response-question";
+import { SourceAnalysisQuestion } from "./source-analysis-question";
+import { CalculationQuestion } from "./calculation-question";
+import { ExtendedEssayQuestion } from "./extended-essay-question";
+import { TrueFalseJustifyQuestion } from "./true-false-justify-question";
+import { MarkbandSelector } from "./markband-selector";
 import { TestQuestion, UserAnswer } from "@/types";
 import { cn } from "@/lib/utils";
 import { questionSlideVariants } from "@/lib/animations";
@@ -34,8 +40,21 @@ export function QuestionCard({
   onAnswerChange,
   onToggleFlag,
 }: QuestionCardProps) {
-  const isMCQ = question.type === "mcq" && question.options;
-  const isLabelDiagram = (question.type as string) === "label_diagram";
+  const qType = question.type as string;
+  const isMCQ = qType === "mcq" && question.options;
+  const isLabelDiagram = qType === "label_diagram";
+  const isDataResponse = qType === "data_response";
+  const isSourceAnalysis = qType === "source_analysis";
+  const isCalculation = qType === "calculation";
+  const isExtendedEssay = qType === "extended_essay";
+  const isTrueFalseJustify = qType === "true_false_justify";
+  const hasMarkband = !!question.markband_max;
+
+  // Helper to parse JSON-stored answers for multi-part types
+  const parseJsonAnswer = (raw: string | undefined): Record<string, string> => {
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return {}; }
+  };
 
   return (
     <motion.div
@@ -51,7 +70,7 @@ export function QuestionCard({
         <CardContent className="p-8 sm:p-10">
           {/* Question Header */}
           <div className="flex items-start justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-xl font-semibold">
                 Question {questionNumber}
               </h3>
@@ -61,6 +80,16 @@ export function QuestionCard({
               >
                 {question.difficulty.toUpperCase()}
               </Badge>
+              {question.marks > 0 && (
+                <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
+                  {question.marks} {question.marks === 1 ? "mark" : "marks"}
+                </Badge>
+              )}
+              {question.is_hl_extension && (
+                <Badge className="rounded-full px-3 py-1 text-xs bg-purple-600 text-white">
+                  HL Extension
+                </Badge>
+              )}
             </div>
 
             <Button
@@ -86,8 +115,44 @@ export function QuestionCard({
             {isLabelDiagram ? (
               <LabelDiagramQuestion
                 question={question}
-                answers={answer?.answer ? JSON.parse(answer.answer) : {}}
+                answers={parseJsonAnswer(answer?.answer)}
                 onAnswerChange={(labels) => onAnswerChange(JSON.stringify(labels))}
+              />
+            ) : isDataResponse ? (
+              <DataResponseQuestion
+                question={question}
+                answers={parseJsonAnswer(answer?.answer)}
+                onAnswerChange={(answers) => onAnswerChange(JSON.stringify(answers))}
+              />
+            ) : isSourceAnalysis ? (
+              <SourceAnalysisQuestion
+                question={question}
+                answers={parseJsonAnswer(answer?.answer)}
+                onAnswerChange={(answers) => onAnswerChange(JSON.stringify(answers))}
+              />
+            ) : isCalculation ? (
+              <CalculationQuestion
+                question={question}
+                answers={parseJsonAnswer(answer?.answer)}
+                onAnswerChange={(answers) => onAnswerChange(JSON.stringify(answers))}
+              />
+            ) : isExtendedEssay ? (
+              <ExtendedEssayQuestion
+                question={question}
+                answer={answer?.answer}
+                onAnswerChange={(text) => onAnswerChange(text)}
+              />
+            ) : isTrueFalseJustify ? (
+              <TrueFalseJustifyQuestion
+                question={question}
+                answer={answer?.answer}
+                onAnswerChange={(text) => onAnswerChange(text)}
+              />
+            ) : hasMarkband ? (
+              <MarkbandSelector
+                question={question}
+                selectedBand={answer?.answer ? Number(answer.answer) : null}
+                onSelect={(band) => onAnswerChange(String(band))}
               />
             ) : isMCQ ? (
               <MCQQuestion

@@ -7,7 +7,7 @@ import {
   BarChart3,
   Clock,
   FileText,
-  CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -146,46 +146,50 @@ export function TestConfigSummary({
             </div>
           </div>
 
-          {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-              <p className="text-sm font-medium text-destructive mb-2">
-                Please complete the following:
-              </p>
-              <ul className="text-sm text-destructive space-y-1">
-                {validationErrors.map((error, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-destructive" />
-                    {error}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        </CardContent>
+      </Card>
 
-          {/* Start Test Button */}
+      {/* Floating bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-6">
+          {/* Summary pills */}
+          <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground min-w-0">
+            {isValid ? (
+              <>
+                <span className="font-medium text-foreground truncate">{subject?.name}</span>
+                <span className="text-border">·</span>
+                <span>{totalQuestions} questions</span>
+                <span className="text-border">·</span>
+                <span>{estimatedTime} min</span>
+              </>
+            ) : (
+              <span className="text-xs">
+                {validationErrors[0]}
+              </span>
+            )}
+          </div>
+
+          {/* Start button */}
           <Button
-            className="w-full gap-2"
             size="lg"
             onClick={onStartTest}
             disabled={!isValid || isLoading}
+            className="shrink-0 gap-2 px-8 rounded-full"
           >
             {isLoading ? (
               <>
-                <span className="animate-spin">
-                  <Clock className="h-4 w-4" />
-                </span>
-                Generating Test...
+                <Clock className="h-4 w-4 animate-spin" />
+                Generating...
               </>
             ) : (
               <>
-                <CheckCircle2 className="h-4 w-4" />
                 Start Test
+                <ArrowRight className="h-4 w-4" />
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }

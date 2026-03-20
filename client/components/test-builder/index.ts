@@ -5,3 +5,4 @@ export { DifficultySelector } from "./difficulty-selector";
 export { TestConfigSummary } from "./test-config-summary";
 export { ExamBoardSelector } from "./exam-board-selector";
 export { PaperSelector } from "./paper-selector";
+export { IntegritySettingsPanel } from "./integrity-settings-panel";

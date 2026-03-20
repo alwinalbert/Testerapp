@@ -428,6 +428,7 @@ export const mockTestResults: TestResults = {
     "Review techniques for expanding written responses while maintaining focus",
     "Consider creating outlines before writing longer responses",
   ],
+  startedAt: new Date(Date.now() - 2340 * 1000),
   completedAt: new Date(),
   timeTaken: 2340, // 39 minutes in seconds
 };

@@ -196,6 +196,7 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
           Object.values(session.answers),
           timeTaken
         );
+        results.startedAt = session.startTime;
         console.log("Test evaluated via n8n API");
       } else {
         // Fallback to mock evaluation
@@ -250,6 +251,7 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
         totalScore,
         maxScore,
         percentage: Math.round((totalScore / maxScore) * 100),
+        startedAt: session.startTime,
         completedAt: new Date(),
         timeTaken,
       };

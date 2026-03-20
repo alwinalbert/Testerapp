@@ -53,9 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getUser().then(({ data: { user: supabaseUser } }) => {
-      if (supabaseUser) {
+    // Get initial session — silently sign out if refresh token is invalid
+    supabase.auth.getUser().then(({ data: { user: supabaseUser }, error }) => {
+      if (error?.code === "refresh_token_not_found" || error?.status === 400) {
+        supabase.auth.signOut();
+        setUser(null);
+      } else if (supabaseUser) {
         setUser(mapSupabaseUser(supabaseUser));
       }
       setIsLoading(false);
@@ -64,8 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+        if (session?.user) setUser(mapSupabaseUser(session.user));
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      } else if (session?.user) {
         setUser(mapSupabaseUser(session.user));
       } else {
         setUser(null);
