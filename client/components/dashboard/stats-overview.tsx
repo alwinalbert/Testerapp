@@ -171,6 +171,12 @@ const gradeColor = (grade: string) => {
   return "bg-red-500/10 text-red-600 border-red-500/30";
 };
 
+const trendLabel = (trend: "up" | "stable" | "down", delta: number) => {
+  if (trend === "up") return `+${delta}% improving`;
+  if (trend === "down") return `${delta}% declining`;
+  return "stable";
+};
+
 interface PredictedGradesProps {
   subjectStats: SubjectStat[];
 }
@@ -186,20 +192,43 @@ export function PredictedGrades({ subjectStats }: PredictedGradesProps) {
           Predicted Grades
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2.5 pt-0">
+      <CardContent className="space-y-3 pt-0">
         {subjectStats.map((s) => (
-          <div key={s.subjectId} className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{s.subjectName}</p>
-              <p className="text-xs text-muted-foreground">On track for</p>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {s.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-green-500" />}
-              {s.trend === "down" && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
-              {s.trend === "stable" && <Minus className="h-3.5 w-3.5 text-muted-foreground" />}
-              <Badge variant="outline" className={`text-sm font-bold px-2 ${gradeColor(s.predictedGrade)}`}>
+          <div key={s.subjectId} className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex items-center gap-1.5">
+                {s.isPriority && (
+                  <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
+                )}
+                <p className="text-sm font-medium truncate">{s.subjectName}</p>
+              </div>
+              <Badge
+                variant="outline"
+                className={`text-sm font-bold px-2.5 shrink-0 ${gradeColor(s.predictedGrade)}`}
+              >
                 {s.predictedGrade}
               </Badge>
+            </div>
+
+            {/* Prediction message + trajectory */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground pl-0.5">
+              <span>
+                Based on {s.testCount} {s.testCount === 1 ? "test" : "tests"} · avg {s.weightedScore}%
+              </span>
+              <span
+                className={`flex items-center gap-0.5 font-medium ${
+                  s.trend === "up"
+                    ? "text-green-500"
+                    : s.trend === "down"
+                    ? "text-red-500"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {s.trend === "up" && <TrendingUp className="h-3 w-3" />}
+                {s.trend === "down" && <TrendingDown className="h-3 w-3" />}
+                {s.trend === "stable" && <Minus className="h-3 w-3" />}
+                {trendLabel(s.trend, s.trendDelta)}
+              </span>
             </div>
           </div>
         ))}

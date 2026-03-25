@@ -19,6 +19,7 @@ import {
   Moon,
   GraduationCap,
   Building2,
+  CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "next-themes";
@@ -30,6 +31,7 @@ const baseNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/test-builder", label: "Create Test", icon: FileText },
   { href: "/dashboard/results", label: "Results", icon: BarChart3 },
+  { href: "/pricing", label: "Pricing", icon: CreditCard },
 ];
 
 const progressNavItem = { href: "/dashboard/progress", label: "Progress", icon: TrendingUp };

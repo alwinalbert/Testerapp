@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flag } from "lucide-react";
+import { Flag, Clock, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -105,8 +105,36 @@ export function QuestionCard({
             </Button>
           </div>
 
+          {/* Metadata strip — AO tag, command term, syllabus code, expected time */}
+          {(question.ao_tag || question.command_term || question.syllabus_code || question.expected_time_minutes) && (
+            <div className="flex flex-wrap items-center gap-2 mb-4 mt-1">
+              {question.ao_tag && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2.5 py-0.5 text-xs font-medium">
+                  <BookOpen className="h-3 w-3" />
+                  {question.ao_tag}
+                </span>
+              )}
+              {question.command_term && (
+                <span className="inline-flex items-center rounded-full bg-violet-500/10 text-violet-500 border border-violet-500/20 px-2.5 py-0.5 text-xs font-medium">
+                  {question.command_term}
+                </span>
+              )}
+              {question.syllabus_code && (
+                <span className="inline-flex items-center rounded-full bg-muted text-muted-foreground border px-2.5 py-0.5 text-xs">
+                  §{question.syllabus_code}
+                </span>
+              )}
+              {question.expected_time_minutes && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted text-muted-foreground border px-2.5 py-0.5 text-xs">
+                  <Clock className="h-3 w-3" />
+                  ~{question.expected_time_minutes} min
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Question Stem — renders passage, image, table, audio + math */}
-          <div className="mb-8 mt-6">
+          <div className="mb-8 mt-2">
             <QuestionStem question={question} />
           </div>
 

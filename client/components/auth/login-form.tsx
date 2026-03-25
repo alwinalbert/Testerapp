@@ -103,15 +103,7 @@ export function LoginForm() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -141,6 +133,14 @@ export function LoginForm() {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

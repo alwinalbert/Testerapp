@@ -163,6 +163,17 @@ export interface TestQuestion {
   is_hl_extension?: boolean;
   markband_max?: 4 | 8;
   band_descriptors?: BandDescriptor[];
+  // Metadata model (11A)
+  syllabus_code?: string;           // e.g. "2.3" — mapped to official syllabus
+  ao_tag?: string;                  // e.g. "AO2"
+  command_term?: string;            // e.g. "Evaluate"
+  expected_time_minutes?: number;   // expected time to answer
+  source?: "ai_generated" | "teacher_created" | "past_paper";
+  paper_year?: number;              // e.g. 2023 — if source is past_paper
+  paper_session?: "may" | "november";
+  image_id?: string;                // Supabase Storage reference
+  audio_id?: string;
+  video_id?: string;
 }
 
 export interface LabelPosition {

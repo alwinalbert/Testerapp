@@ -3,11 +3,13 @@ import { TestResults, RecentTest, DashboardStats } from "@/types";
 export interface SubjectStat {
   subjectId: string;
   subjectName: string;
-  lastScore: number;       // percentage 0-100
-  predictedGrade: string;  // A*, A, B… or 7, 6, 5…
+  lastScore: number;         // percentage of most recent test
+  weightedScore: number;     // recency-weighted average across last 10 tests
+  predictedGrade: string;    // A*, A, B… or 7, 6, 5…
   trend: "up" | "stable" | "down";
+  trendDelta: number;        // % change between avg of last 3 vs prior 3
   testCount: number;
-  isPriority: boolean;     // weakest predicted grade = focus subject
+  isPriority: boolean;       // weakest predicted grade = focus subject
 }
 
 function gradeFromPct(pct: number, syllabus?: string): string {
@@ -144,6 +146,18 @@ export function computeStats(userEmail: string): DashboardStats {
   };
 }
 
+// Recency weights: most recent test = 1.0, then 0.85, 0.70 … down to 0.10
+const RECENCY_WEIGHTS = [1.0, 0.85, 0.70, 0.55, 0.40, 0.30, 0.20, 0.15, 0.10, 0.10];
+
+function weightedAverage(scores: number[]): number {
+  // scores should be ordered oldest → newest; we weight from the end
+  const recent = scores.slice(-10);
+  const weights = RECENCY_WEIGHTS.slice(0, recent.length).reverse();
+  const totalWeight = weights.reduce((s, w) => s + w, 0);
+  const weighted = recent.reduce((s, pct, i) => s + pct * weights[i], 0);
+  return totalWeight > 0 ? weighted / totalWeight : 0;
+}
+
 export function computeSubjectStats(userEmail: string, syllabus?: string): SubjectStat[] {
   const results = getTestResults(userEmail);
   if (results.length === 0) return [];
@@ -160,25 +174,37 @@ export function computeSubjectStats(userEmail: string, syllabus?: string): Subje
 
   const stats: SubjectStat[] = Object.entries(subjectMap).map(([id, data]) => {
     const sorted = data.scores.sort((a, b) => a.date.getTime() - b.date.getTime());
-    const lastScore = sorted[sorted.length - 1].pct;
-    const prevScore = sorted.length >= 2 ? sorted[sorted.length - 2].pct : lastScore;
-    const diff = lastScore - prevScore;
-    const trend: "up" | "stable" | "down" = diff > 5 ? "up" : diff < -5 ? "down" : "stable";
+    const pcts = sorted.map((s) => s.pct);
+
+    const lastScore = pcts[pcts.length - 1];
+    const wScore = weightedAverage(pcts);
+
+    // Trajectory: avg of last 3 vs avg of prior 3
+    const last3 = pcts.slice(-3);
+    const prior3 = pcts.slice(-6, -3);
+    const avgRecent = last3.reduce((s, v) => s + v, 0) / last3.length;
+    const avgPrior = prior3.length > 0
+      ? prior3.reduce((s, v) => s + v, 0) / prior3.length
+      : avgRecent;
+    const delta = Math.round(avgRecent - avgPrior);
+    const trend: "up" | "stable" | "down" = delta > 5 ? "up" : delta < -5 ? "down" : "stable";
 
     return {
       subjectId: id,
       subjectName: data.name,
       lastScore: Math.round(lastScore),
-      predictedGrade: gradeFromPct(lastScore, syllabus),
+      weightedScore: Math.round(wScore),
+      predictedGrade: gradeFromPct(wScore, syllabus),
       trend,
+      trendDelta: delta,
       testCount: sorted.length,
       isPriority: false,
     };
   });
 
-  // Mark the weakest predicted grade as priority
+  // Mark weakest weighted score as priority
   if (stats.length > 0) {
-    const weakest = stats.reduce((min, s) => s.lastScore < min.lastScore ? s : min, stats[0]);
+    const weakest = stats.reduce((min, s) => s.weightedScore < min.weightedScore ? s : min, stats[0]);
     weakest.isPriority = true;
   }
 
