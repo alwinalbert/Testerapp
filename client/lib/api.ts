@@ -31,6 +31,7 @@ export interface N8nTestPaper {
       };
       duration_minutes: number;
       total_marks: number;
+      paper_style?: "paper_1" | "paper_2" | "paper_3";
     };
     questions: {
       question_number: number;
@@ -40,6 +41,23 @@ export interface N8nTestPaper {
       topic: string;
       marks: number;
       capability: string;
+      // Question type & MCQ options
+      type?: "mcq" | "written" | "data_response" | "source_analysis" | "calculation" | "extended_essay" | "true_false_justify";
+      options?: { id: string; text: string }[];
+      // IB metadata
+      ao_tag?: string;
+      command_term?: string;
+      syllabus_code?: string;
+      expected_time_minutes?: number;
+      source?: "ai_generated" | "teacher_created" | "past_paper";
+      is_hl_extension?: boolean;
+      markband_max?: 4 | 8;
+      band_descriptors?: { band: number; range: string; descriptor: string }[];
+      // Multimedia
+      image_url?: string;
+      audio_url?: string;
+      video_url?: string;
+      passage?: string;
     }[];
     instructions: string;
   };
@@ -306,7 +324,20 @@ export function transformN8nTestPaper(n8nPaper: N8nTestPaper): import("@/types")
       topic: q.topic,
       marks: q.marks,
       capability: q.capability,
-      type: "written" as const, // Default to written, can be enhanced to detect MCQ
+      type: q.type || (q.options && q.options.length > 0 ? "mcq" : "written"),
+      options: q.options,
+      ao_tag: q.ao_tag,
+      command_term: q.command_term,
+      syllabus_code: q.syllabus_code,
+      expected_time_minutes: q.expected_time_minutes,
+      source: q.source,
+      is_hl_extension: q.is_hl_extension,
+      markband_max: q.markband_max,
+      band_descriptors: q.band_descriptors,
+      image_url: q.image_url,
+      audio_url: q.audio_url,
+      video_url: q.video_url,
+      passage: q.passage,
     })),
     instructions: test_paper.instructions,
     createdAt: new Date(),
