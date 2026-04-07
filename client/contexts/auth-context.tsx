@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = useCallback(
     async (name: string, email: string, password: string, role: UserRole = "student", extraData: Record<string, unknown> = {}): Promise<{ error: string | null }> => {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -115,6 +115,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message };
       }
 
+      // If session is null, email confirmation is required
+      if (!data.session) {
+        router.push("/auth/confirm-email");
+        return { error: null };
+      }
+
+      // Session exists — signed in immediately, go to onboarding or dashboard
       const destination = role === "student" ? "/onboarding/baseline" : "/dashboard";
       router.push(destination);
       router.refresh();
