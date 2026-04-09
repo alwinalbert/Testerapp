@@ -52,7 +52,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    if (!text || text.trim() === "") {
+      console.error("Evaluator returned empty response body");
+      return NextResponse.json(
+        { error: "n8n evaluator returned empty response. Check the workflow is active and configured correctly." },
+        { status: 502 }
+      );
+    }
+    const data = JSON.parse(text);
     return NextResponse.json(data);
   } catch (error) {
     console.error("Evaluate API route error:", error);

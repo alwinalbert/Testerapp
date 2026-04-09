@@ -100,6 +100,89 @@ const getApiConfig = () => {
 // ===== API Functions =====
 
 /**
+ * Fallback: Query Supabase directly when n8n is unavailable
+ */
+async function generateTestFromSupabase(
+  subject: string,
+  topics: string[],
+  numberOfQuestions: number,
+  difficulty: { easy: number; medium: number; hard: number },
+  examBoard?: string,
+  targetGrade?: string
+): Promise<N8nTestPaper | null> {
+  try {
+    // Use our server-side API route to avoid RLS/CORS issues
+    const res = await fetch(
+      `/api/questions?subject=${encodeURIComponent(subject)}&limit=50`
+    );
+
+    if (!res.ok) {
+      console.error("Supabase direct query failed:", res.status);
+      return null;
+    }
+
+    const rows: {
+      id: string;
+      question_text: string;
+      difficulty: string;
+      Topic: string[];
+      capability: string;
+      type: string;
+    }[] = await res.json();
+
+    if (!rows || rows.length === 0) {
+      console.error("No questions found in Supabase for subject:", subject);
+      return null;
+    }
+
+    // Shuffle and pick N questions
+    const shuffled = [...rows].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, Math.min(numberOfQuestions, shuffled.length));
+
+    const questions = selected.map((row, i) => ({
+      question_number: i + 1,
+      question_id: row.id,
+      question_text: row.question_text,
+      difficulty: (row.difficulty as "easy" | "medium" | "hard") || "medium",
+      topic: (() => {
+        const t = row.Topic;
+        if (Array.isArray(t)) return t[0] || subject;
+        if (typeof t === "string") {
+          try { const parsed = JSON.parse(t); return Array.isArray(parsed) ? parsed[0] : t; } catch { return t; }
+        }
+        return subject;
+      })(),
+      marks: row.difficulty === "hard" ? 6 : row.difficulty === "medium" ? 4 : 2,
+      capability: row.capability || "Knowledge",
+      type: "extended_essay" as const,
+    }));
+
+    const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
+
+    console.log(`Supabase fallback: loaded ${questions.length} questions for ${subject}`);
+
+    return {
+      test_paper: {
+        metadata: {
+          title: `${subject} Test`,
+          subject,
+          topics: topics.length > 0 ? topics : [subject],
+          total_questions: questions.length,
+          difficulty_distribution: difficulty,
+          duration_minutes: Math.ceil(totalMarks * 1.5),
+          total_marks: totalMarks,
+        },
+        questions,
+        instructions: `Answer all questions. This is a ${examBoard || "Cambridge IGCSE"} style test for ${subject}. Target grade: ${targetGrade || "B"}.`,
+      },
+    };
+  } catch (error) {
+    console.error("Supabase fallback failed:", error);
+    return null;
+  }
+}
+
+/**
  * Generate a test paper using n8n Test Generator workflow
  * Uses local API proxy to avoid CORS issues
  */
@@ -133,13 +216,23 @@ export async function generateTestPaper(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        chatInput: JSON.stringify(requestBody),
+        chatInput: JSON.stringify({
+          "No of Questions": numberOfQuestions,
+          Topics: topics,
+          Difficulty: [difficulty.easy, difficulty.medium, difficulty.hard],
+          Subject: subject,
+          Exam_Board: examBoard || "Cambridge IGCSE",
+          Target_Grade: targetGrade || "B",
+          ...(paperCode && { Paper_Code: paperCode }),
+          ...(paperSession && { Paper_Session: paperSession }),
+        }),
       }),
     });
 
     if (!response.ok) {
       console.error("Test Generator API error:", response.status, response.statusText);
-      return null;
+      console.log("Falling back to Supabase direct query...");
+      return generateTestFromSupabase(subject, topics, numberOfQuestions, difficulty, examBoard, targetGrade);
     }
 
     const data = await response.json();
@@ -160,11 +253,11 @@ export async function generateTestPaper(
       return parsed as N8nTestPaper;
     }
 
-    console.error("Unexpected response format:", data);
-    return null;
+    console.error("Unexpected n8n response format, falling back to Supabase...");
+    return generateTestFromSupabase(subject, topics, numberOfQuestions, difficulty, examBoard, targetGrade);
   } catch (error) {
-    console.error("Failed to generate test paper:", error);
-    return null;
+    console.error("Failed to generate test paper, falling back to Supabase:", error);
+    return generateTestFromSupabase(subject, topics, numberOfQuestions, difficulty, examBoard, targetGrade);
   }
 }
 

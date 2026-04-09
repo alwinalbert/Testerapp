@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
     for (const url of urls) {
       try {
         console.log("Trying n8n webhook:", url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
         response = await fetch(url, {
           method: "POST",
           headers: {
@@ -29,7 +31,9 @@ export async function POST(request: NextRequest) {
             "ngrok-skip-browser-warning": "true",
           },
           body: JSON.stringify(body),
+          signal: controller.signal,
         });
+        clearTimeout(timeout);
 
         if (response.ok) {
           console.log("Success with:", url);
