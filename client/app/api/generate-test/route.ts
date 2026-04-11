@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       try {
         console.log("Trying n8n webhook:", url);
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
+        const timeout = setTimeout(() => controller.abort(), 60000);
         response = await fetch(url, {
           method: "POST",
           headers: {
