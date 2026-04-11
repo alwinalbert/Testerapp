@@ -448,10 +448,14 @@ export function transformN8nEvaluation(
 ): import("@/types").TestResults {
   const evalMap = new Map(evaluation.evaluations.map(e => [e.question_id, e]));
 
-  // Calculate scores
+  // Build answer map for display
+  const answerMap: Record<string, string> = {};
+  answers.forEach(a => { answerMap[a.question_id] = a.answer; });
+
+  // Calculate scores — fallback to index-based matching if IDs don't match
   let totalScore = 0;
-  const evaluations: import("@/types").Evaluation[] = testPaper.questions.map(q => {
-    const eval_result = evalMap.get(q.question_id);
+  const evaluations: import("@/types").Evaluation[] = testPaper.questions.map((q, idx) => {
+    const eval_result = evalMap.get(q.question_id) || evaluation.evaluations[idx];
     const marks = eval_result?.marks || 0;
     totalScore += marks;
 
@@ -460,7 +464,7 @@ export function transformN8nEvaluation(
       marks,
       max_marks: q.marks,
       report: eval_result?.report || "No evaluation available.",
-      is_correct: marks >= q.marks * 0.7, // 70% threshold for "correct"
+      is_correct: marks >= q.marks * 0.7,
     };
   });
 
@@ -524,5 +528,6 @@ export function transformN8nEvaluation(
     startedAt: new Date(Date.now() - timeTaken * 1000),
     completedAt: new Date(),
     timeTaken,
+    answers: answerMap,
   };
 }

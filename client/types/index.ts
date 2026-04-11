@@ -248,6 +248,7 @@ export interface TestResults {
   startedAt: Date;
   completedAt: Date;
   timeTaken: number; // in seconds
+  answers?: Record<string, string>; // student's typed answers keyed by question_id
 }
 
 // ===== Academic Integrity Types =====

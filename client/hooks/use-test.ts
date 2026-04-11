@@ -243,6 +243,9 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
       const totalScore = evaluations.reduce((sum, e) => sum + e.marks, 0);
       const maxScore = evaluations.reduce((sum, e) => sum + e.max_marks, 0);
 
+      const answerMap: Record<string, string> = {};
+      Object.values(session.answers).forEach(a => { answerMap[a.question_id] = a.answer; });
+
       return {
         ...mockTestResults,
         testId: session.testId,
@@ -254,6 +257,7 @@ export function useTest({ testPaper, onSubmit }: UseTestOptions): UseTestReturn 
         startedAt: session.startTime,
         completedAt: new Date(),
         timeTaken,
+        answers: answerMap,
       };
     }
   }, [session, testPaper, onSubmit]);

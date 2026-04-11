@@ -79,6 +79,7 @@ export function QuestionReview({ results }: QuestionReviewProps) {
                   questionNumber={index + 1}
                   isExpanded={isExpanded}
                   onToggle={() => toggleQuestion(evaluation.question_id)}
+                  studentAnswer={results.answers?.[evaluation.question_id]}
                 />
               </motion.div>
             );
@@ -101,6 +102,7 @@ interface QuestionReviewItemProps {
   questionNumber: number;
   isExpanded: boolean;
   onToggle: () => void;
+  studentAnswer?: string;
 }
 
 function QuestionReviewItem({
@@ -109,6 +111,7 @@ function QuestionReviewItem({
   questionNumber,
   isExpanded,
   onToggle,
+  studentAnswer,
 }: QuestionReviewItemProps) {
   return (
     <div
@@ -184,6 +187,20 @@ function QuestionReviewItem({
                   Question
                 </p>
                 <p>{question.question_text}</p>
+              </div>
+
+              {/* Student's answer */}
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Your Answer
+                </p>
+                {studentAnswer && studentAnswer.trim().length > 0 ? (
+                  <p className="text-sm whitespace-pre-wrap rounded-lg border border-border bg-muted/40 p-3">
+                    {studentAnswer}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No answer provided.</p>
+                )}
               </div>
 
               {/* Feedback */}
