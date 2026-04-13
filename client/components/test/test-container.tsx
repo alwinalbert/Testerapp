@@ -31,7 +31,7 @@ export function TestContainer({ testPaper }: TestContainerProps) {
 
   // Timer hook
   const timer = useTimer({
-    durationMinutes: testPaper.metadata.duration_minutes,
+    durationMinutes: testPaper.metadata.duration_minutes || (testPaper.questions.length * 3),
     onTimeUp: () => setShowSubmitDialog(true),
     autoStart: true,
   });
